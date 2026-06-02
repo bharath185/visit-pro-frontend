@@ -2,6 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { VisitorService } from '../../services/visitor.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { filter } from 'rxjs/operators';
 
 const API = 'http://192.168.2.45:8081/api';
@@ -32,7 +34,9 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   constructor(
     private http: HttpClient,
     public router: Router,
-    public auth: AuthService
+    public auth: AuthService,
+    private visitorSvc: VisitorService,
+    private notification: NzNotificationService
   ) {
     this.loadUser();
     this.updateClock();
@@ -195,5 +199,31 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
 
   dismissPopup(n: any): void {
     this.unreadNotifications = this.unreadNotifications.filter(x => x !== n);
+  }
+
+  approveNotif(n: any, event: Event): void {
+    event.stopPropagation();
+    if (!n.relatedId) return;
+    this.visitorSvc.approvePendingInvite(n.relatedId).subscribe({
+      next: () => {
+        this.notification.success('Approved', 'Invite approved and email sent to visitor');
+        this.dismissPopup(n);
+        this.loadNotifCount();
+      },
+      error: () => this.notification.error('Error', 'Failed to approve')
+    });
+  }
+
+  rejectNotif(n: any, event: Event): void {
+    event.stopPropagation();
+    if (!n.relatedId) return;
+    this.visitorSvc.rejectPendingInvite(n.relatedId).subscribe({
+      next: () => {
+        this.notification.success('Rejected', 'Invite has been rejected');
+        this.dismissPopup(n);
+        this.loadNotifCount();
+      },
+      error: () => this.notification.error('Error', 'Failed to reject')
+    });
   }
 }

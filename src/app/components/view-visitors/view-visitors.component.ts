@@ -186,7 +186,7 @@ export class ViewVisitorsComponent implements OnInit {
     this.showVisitorDialog = false;
   }
 
-  get isPlantAdmin(): boolean { return this.auth.isPlantAdmin(); }
+  get isPlantAdmin(): boolean { return this.auth.isPlantAdmin() || this.auth.isSecurity(); }
 
   doCheckIn(): void {
     if (!this.selectedVisitor?.VisitId) return;

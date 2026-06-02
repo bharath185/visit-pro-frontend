@@ -77,7 +77,7 @@
             <button nz-button nzType="primary" nzSize="small" (click)="view(v); $event.stopPropagation()">
               <i nz-icon nzType="eye"></i>
             </button>
-            <button nz-button nzSize="small" nzType="default" *ngIf="v.CheckIn && !v.CheckOut && v.CreatedBy === auth.currentUser?.EmpId && !auth.isPlantAdmin()" (click)="regenerateOtpForRow(v); $event.stopPropagation()" style="margin-left:4px">
+            <button nz-button nzSize="small" nzType="default" *ngIf="v.CheckIn && !v.CheckOut && v.CreatedBy === auth.currentUser?.EmpId && !auth.isPlantAdmin() && !auth.isSecurity()" (click)="regenerateOtpForRow(v); $event.stopPropagation()" style="margin-left:4px">
               <i nz-icon nzType="reload"></i>
             </button>
           </td>
@@ -257,7 +257,7 @@
       </button>
 
       <!-- Regenerate OTP (Host only) -->
-      <button nz-button nzType="default" *ngIf="selectedVisitor?.CheckIn && !selectedVisitor?.CheckOut && selectedVisitor?.CreatedBy === auth.currentUser?.EmpId && !auth.isPlantAdmin()" (click)="regenerateOtp()">
+      <button nz-button nzType="default" *ngIf="selectedVisitor?.CheckIn && !selectedVisitor?.CheckOut && selectedVisitor?.CreatedBy === auth.currentUser?.EmpId && !auth.isPlantAdmin() && !auth.isSecurity()" (click)="regenerateOtp()">
         <i nz-icon nzType="reload"></i> Regenerate OTP
       </button>
 

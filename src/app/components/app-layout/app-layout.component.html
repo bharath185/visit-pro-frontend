@@ -55,7 +55,18 @@
 <div class="notif-popup-container">
   <div class="notif-popup" *ngFor="let n of unreadNotifications" (click)="markNotifRead(n.notificationId)">
     <div class="notif-popup-icon"><i nz-icon nzType="bell" style="color:#1890ff"></i></div>
-    <div class="notif-popup-content"><strong>{{ n.title }}</strong><p>{{ n.message }}</p></div>
+    <div class="notif-popup-content">
+      <strong>{{ n.title }}</strong>
+      <p>{{ n.message }}</p>
+      <div *ngIf="n.title === 'Approval Required'" style="margin-top:4px;display:flex;gap:4px" (click)="$event.stopPropagation()">
+        <button nz-button nzSize="small" nzType="primary" nzDanger (click)="rejectNotif(n, $event)" style="font-size:11px;height:24px;line-height:24px;padding:0 8px">
+          <i nz-icon nzType="close"></i> Reject
+        </button>
+        <button nz-button nzSize="small" nzType="primary" style="background:#52c41a;border-color:#52c41a;font-size:11px;height:24px;line-height:24px;padding:0 8px" (click)="approveNotif(n, $event)">
+          <i nz-icon nzType="check"></i> Approve
+        </button>
+      </div>
+    </div>
     <button class="notif-popup-close" (click)="$event.stopPropagation();dismissPopup(n)"><i nz-icon nzType="close"></i></button>
   </div>
 </div>

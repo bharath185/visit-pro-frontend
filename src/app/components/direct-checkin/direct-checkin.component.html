@@ -45,7 +45,7 @@
         <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
           <div class="form-section">
             <label class="form-section-label">Mobile</label>
-            <input nz-input [(ngModel)]="model.Mobile" name="mobile" placeholder="10-digit mobile number" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number">
+            <input nz-input [(ngModel)]="model.Mobile" name="mobile" placeholder="10-digit mobile number" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number" (blur)="onMobileBlur()">
           </div>
         </div>
         <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">

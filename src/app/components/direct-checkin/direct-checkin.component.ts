@@ -27,6 +27,7 @@ export class DirectCheckinComponent implements OnInit {
   visitPurposes: any[] = [];
 
   uploading = false;
+  autoFillingMobile = false;
 
   constructor(private svc: VisitorService, private master: MasterService, public auth: AuthService, private notification: NzNotificationService) {}
 
@@ -72,6 +73,30 @@ export class DirectCheckinComponent implements OnInit {
     return desig ? `${e.Name} (${desig})` : `${e.Name} (${e.Code})`;
   }
 
+  onMobileBlur(): void {
+    const mobile = this.model.Mobile;
+    if (!mobile || this.autoFillingMobile) return;
+    const mobileRegex = /^[6-9]\d{9}$/;
+    if (!mobileRegex.test(mobile)) return;
+
+    this.autoFillingMobile = true;
+    this.svc.getVisitorByMobile(mobile).subscribe({
+      next: (existing) => {
+        this.autoFillingMobile = false;
+        if (existing && existing.VisitId) {
+          const m = this.model;
+          if (!m.Name) m.Name = existing.Name || '';
+          if (!m.Designation) m.Designation = existing.Designation || '';
+          if (!m.Company) m.Company = existing.Company || '';
+          if (!m.Purpose) m.Purpose = existing.Purpose || '';
+          if (!m.PMail) m.PMail = existing.PMail || '';
+          if (!m.Category) m.Category = existing.Category || '';
+        }
+      },
+      error: () => { this.autoFillingMobile = false; }
+    });
+  }
+
   submit(): void {
     if (!this.model.Name || !this.model.PMail || !this.model.IdCard) {
       this.notification.error('Error', 'Name, Email and ID Card are required'); return;
@@ -91,7 +116,10 @@ export class DirectCheckinComponent implements OnInit {
     this.uploading = true;
     this.svc.directCheckIn(this.model).subscribe(r => {
       this.uploading = false;
-      this.notification.success('Success', r.Msg || 'Check-in successful');
+      const msg = (this.auth.isSecurity() || this.auth.isPlantAdmin())
+        ? (r.Msg || 'Check-in submitted. The host will be notified for approval.')
+        : (r.Msg || 'Check-in successful');
+      this.notification.success('Success', msg);
       this.model = { Invited: true, Accept: true, Approved: true, DirectCheckIn: true, IsActive: true, Date: new Date().toISOString().split('T')[0] };
       this.selectedEmployee = null;
       this.selectedDesignation = null;

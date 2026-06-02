@@ -34,6 +34,7 @@ export class InviteVisitorComponent implements OnInit {
 
   uploading = false;
   today = new Date().toISOString().split('T')[0];
+  autoFillingMobile = false;
 
   constructor(private svc: VisitorService, private master: MasterService, public auth: AuthService, private notification: NzNotificationService) {}
 
@@ -88,6 +89,31 @@ export class InviteVisitorComponent implements OnInit {
     this.filteredVisitors = val
       ? this.visitors.filter(v => (v.Name || '').toLowerCase().includes(val.toLowerCase()) || (v.Company || '').toLowerCase().includes(val.toLowerCase()))
       : [...this.visitors];
+  }
+
+  // ---- Mobile Auto-Fill ----
+  onMobileBlur(): void {
+    const mobile = this.model.Mobile;
+    if (!mobile || this.autoFillingMobile) return;
+    const mobileRegex = /^[6-9]\d{9}$/;
+    if (!mobileRegex.test(mobile)) return;
+
+    this.autoFillingMobile = true;
+    this.svc.getVisitorByMobile(mobile).subscribe({
+      next: (existing) => {
+        this.autoFillingMobile = false;
+        if (existing && existing.VisitId) {
+          const preserve = this.model;
+          if (!preserve.Name) preserve.Name = existing.Name || '';
+          if (!preserve.Designation) preserve.Designation = existing.Designation || '';
+          if (!preserve.Company) preserve.Company = existing.Company || '';
+          if (!preserve.Purpose) preserve.Purpose = existing.Purpose || '';
+          if (!preserve.PMail) preserve.PMail = existing.PMail || '';
+          if (!preserve.Category) preserve.Category = existing.Category || '';
+        }
+      },
+      error: () => { this.autoFillingMobile = false; }
+    });
   }
 
   // ---- Submit ----

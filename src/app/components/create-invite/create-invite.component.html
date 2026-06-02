@@ -9,7 +9,7 @@
         <div class="form-section"><label>Email Address <span class="required">*</span></label><input nz-input [(ngModel)]="model.PMail" type="email" placeholder="email@example.com"></div>
       </div>
       <div nz-col [nzSpan]="12">
-        <div class="form-section"><label>Mobile Number</label><input nz-input [(ngModel)]="model.Mobile" placeholder="10-digit mobile number" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number"></div>
+        <div class="form-section"><label>Mobile Number</label><input nz-input [(ngModel)]="model.Mobile" placeholder="10-digit mobile number" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number" (blur)="onMobileBlur()"></div>
       </div>
       <div nz-col [nzSpan]="12">
         <div class="form-section"><label>Company Name</label><input nz-input [(ngModel)]="model.Company" placeholder="Company"></div>

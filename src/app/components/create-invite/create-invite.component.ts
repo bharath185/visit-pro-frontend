@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { MasterService } from '../../services/master.service';
+import { VisitorService } from '../../services/visitor.service';
 
 const API = 'http://192.168.2.45:8081/api';
 
@@ -13,6 +14,7 @@ const API = 'http://192.168.2.45:8081/api';
 export class CreateInviteComponent implements OnInit {
   user: any = null;
   loading = false;
+  autoFillingMobile = false;
 
   // Form model
   model: any = {
@@ -28,7 +30,8 @@ export class CreateInviteComponent implements OnInit {
     private http: HttpClient,
     public auth: AuthService,
     private master: MasterService,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private svc: VisitorService
   ) {
     this.user = auth.currentUser;
   }
@@ -50,6 +53,30 @@ export class CreateInviteComponent implements OnInit {
     this.http.post<any>(API + '/visitor/by-employee', { EmpId: this.user.EmpId }).subscribe({
       next: r => this.myInvites = Array.isArray(r) ? r : (r.visitorList || []),
       error: () => {}
+    });
+  }
+
+  onMobileBlur(): void {
+    const mobile = this.model.Mobile;
+    if (!mobile || this.autoFillingMobile) return;
+    const mobileRegex = /^[6-9]\d{9}$/;
+    if (!mobileRegex.test(mobile)) return;
+
+    this.autoFillingMobile = true;
+    this.svc.getVisitorByMobile(mobile).subscribe({
+      next: (existing) => {
+        this.autoFillingMobile = false;
+        if (existing && existing.VisitId) {
+          const m = this.model;
+          if (!m.Name) m.Name = existing.Name || '';
+          if (!m.Designation) m.Designation = existing.Designation || '';
+          if (!m.Company) m.Company = existing.Company || '';
+          if (!m.Purpose) m.Purpose = existing.Purpose || '';
+          if (!m.PMail) m.PMail = existing.PMail || '';
+          if (!m.Category) m.Category = existing.Category || '';
+        }
+      },
+      error: () => { this.autoFillingMobile = false; }
     });
   }
 

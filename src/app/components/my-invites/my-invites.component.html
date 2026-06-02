@@ -20,7 +20,7 @@
             <button *ngIf="v.Status === 'Pending Approval'" nz-button nzSize="small" nzType="primary" (click)="approveVisit(v.VisitId)" style="margin-right:4px"><i nz-icon nzType="check"></i> Approve</button>
             <button *ngIf="v.Status === 'Pending Approval'" nz-button nzSize="small" nzDanger (click)="rejectVisit(v.VisitId)" style="margin-right:4px"><i nz-icon nzType="close"></i> Reject</button>
             <button *ngIf="v.Status === 'Invited'" nz-button nzSize="small" nzDanger (click)="cancelInvite(v.VisitId)"><i nz-icon nzType="close"></i></button>
-            <button *ngIf="v.Status === 'Checked In' && !auth.isPlantAdmin()" nz-button nzSize="small" nzType="default" (click)="regenerateOtp(v.VisitId)" nz-tooltip="Regenerate Checkout OTP"><i nz-icon nzType="reload"></i></button>
+            <button *ngIf="v.Status === 'Checked In' && !auth.isPlantAdmin() && !auth.isSecurity()" nz-button nzSize="small" nzType="default" (click)="regenerateOtp(v.VisitId)" nz-tooltip="Regenerate Checkout OTP"><i nz-icon nzType="reload"></i></button>
           </td>
         </tr>
       </tbody>

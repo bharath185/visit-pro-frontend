@@ -224,4 +224,8 @@ export class VisitorService {
   rejectPendingInvite(visitId: number): Observable<Visitor> {
     return this.http.post<Visitor>(`${this.api}/reject-pending/${visitId}`, {});
   }
+
+  getVisitorByMobile(mobile: string): Observable<any> {
+    return this.http.post<any>(`${this.api}/get-by-mobile`, { Mobile: mobile });
+  }
 }
