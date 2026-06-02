@@ -1,0 +1,61 @@
+<nz-layout class="app-layout">
+  <nz-sider [nzWidth]="220" [nzCollapsedWidth]="64" [(nzCollapsed)]="isCollapsed" class="app-sider">
+    <div class="sider-brand">
+      <div class="sider-logo">
+        <span class="sider-logo-icon"><i nz-icon nzType="team" nzTheme="outline" style="font-size:18px"></i></span>
+        <span class="sider-logo-text" *ngIf="!isCollapsed">Visitor<span style="font-weight:300;"> Connect</span></span>
+      </div>
+    </div>
+    <ul nz-menu nzMode="inline" [nzInlineCollapsed]="isCollapsed" class="sider-menu">
+      <ng-container *ngFor="let section of menuSections">
+        <li class="sider-menu-group" *ngIf="!isCollapsed">{{ section.label }}</li>
+        <li nz-menu-item *ngFor="let item of section.children"
+          (click)="navigateByRoute(item.route)"
+          [class.ant-menu-item-selected]="router.url.startsWith(item.route)">
+          <i nz-icon [nzType]="item.icon"></i><span>{{ item.label }}</span>
+        </li>
+      </ng-container>
+    </ul>
+    <div class="sider-footer">
+      <nz-avatar [nzText]="user?.FullName?.charAt(0)?.toUpperCase() || 'U'" nzSize="small" style="background:#1890ff;color:#fff;flex-shrink:0" *ngIf="!isCollapsed"></nz-avatar>
+      <div class="sider-user" *ngIf="!isCollapsed">
+        <div class="sider-user-name">{{ user?.FullName }}</div>
+        <div class="sider-user-role">{{ getRoleBadge() }}</div>
+      </div>
+      <button nz-button nzType="text" class="sider-logout-btn" (click)="logout()" nzTooltipTitle="Logout" nz-tooltip><i nz-icon nzType="logout"></i></button>
+    </div>
+  </nz-sider>
+  <nz-layout class="app-main">
+    <nz-header class="app-topbar">
+      <div class="topbar-left">
+        <button nz-button nzType="text" class="topbar-trigger" (click)="isCollapsed = !isCollapsed"><i nz-icon [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"></i></button>
+        <span class="topbar-page">{{ pageTitle }}</span>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-clock"><i nz-icon nzType="clock-circle"></i> {{ currentTime }}</span>
+        <nz-divider nzType="vertical" style="height:24px;border-color:#e8e8e8"></nz-divider>
+        <a *ngIf="isRegularUser" routerLink="/user/notifications" class="topbar-notif-link">
+          <i nz-icon nzType="bell"></i>
+          <nz-badge *ngIf="notifCount > 0" [nzCount]="notifCount" [nzOverflowCount]="99" class="topbar-notif-badge"></nz-badge>
+        </a>
+        <nz-divider *ngIf="isRegularUser" nzType="vertical" style="height:24px;border-color:#e8e8e8"></nz-divider>
+        <nz-avatar [nzText]="user?.FullName?.charAt(0)?.toUpperCase() || 'U'" nzSize="small" class="topbar-avatar"></nz-avatar>
+        <span class="topbar-user-name">{{ user?.FullName }}</span>
+        <nz-divider nzType="vertical" style="height:24px;border-color:#e8e8e8"></nz-divider>
+        <button nz-button nzType="text" nzDanger class="topbar-logout-btn" (click)="logout()" nzTooltipTitle="Logout" nz-tooltip><i nz-icon nzType="logout"></i></button>
+      </div>
+    </nz-header>
+    <nz-content class="app-content">
+      <router-outlet></router-outlet>
+    </nz-content>
+  </nz-layout>
+</nz-layout>
+
+<!-- NOTIFICATION POPUP (bottom-right) -->
+<div class="notif-popup-container">
+  <div class="notif-popup" *ngFor="let n of unreadNotifications" (click)="markNotifRead(n.notificationId)">
+    <div class="notif-popup-icon"><i nz-icon nzType="bell" style="color:#1890ff"></i></div>
+    <div class="notif-popup-content"><strong>{{ n.title }}</strong><p>{{ n.message }}</p></div>
+    <button class="notif-popup-close" (click)="$event.stopPropagation();dismissPopup(n)"><i nz-icon nzType="close"></i></button>
+  </div>
+</div>

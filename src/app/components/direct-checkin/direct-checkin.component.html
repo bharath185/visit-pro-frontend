@@ -1,0 +1,120 @@
+<div class="fade-in">
+  <div class="page-header">
+    <nz-breadcrumb>
+      <nz-breadcrumb-item><a routerLink="/"><i nz-icon nzType="home"></i></a></nz-breadcrumb-item>
+      <nz-breadcrumb-item>Direct Check-In</nz-breadcrumb-item>
+    </nz-breadcrumb>
+    <h2>Direct Check-In</h2>
+  </div>
+
+  <nz-card [nzTitle]="'New Walk-In Visitor'" nzType="inner" class="mb-3">
+    <form (ngSubmit)="submit()" #form="ngForm">
+      <div nz-row [nzGutter]="[16,16]">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Full Name <span class="text-danger">*</span></label>
+            <input nz-input [(ngModel)]="model.Name" name="name" required autofocus placeholder="Visitor full name">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Designation</label>
+            <input nz-input [(ngModel)]="model.Designation" name="designation" placeholder="e.g. Manager">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Company</label>
+            <input nz-input [(ngModel)]="model.Company" name="company" placeholder="Company name">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Purpose of Visit</label>
+            <nz-select [(ngModel)]="model.Purpose" name="purpose" nzPlaceHolder="Select purpose">
+              <nz-option *ngFor="let v of visitPurposes" [nzValue]="v.Name" [nzLabel]="v.Name"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Email <span class="text-danger">*</span></label>
+            <input nz-input [(ngModel)]="model.PMail" name="email" type="email" required placeholder="visitor@email.com">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Mobile</label>
+            <input nz-input [(ngModel)]="model.Mobile" name="mobile" placeholder="10-digit mobile number" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Alternate Mobile</label>
+            <input nz-input [(ngModel)]="model.AMobile" name="amobile" placeholder="Alternate mobile" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number">
+          </div>
+        </div>
+        <!-- PlantAdmin: Designation + Employee flow -->
+        <ng-container *ngIf="isPlantAdmin">
+          <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+            <div class="form-section">
+              <label class="form-section-label">Designation</label>
+              <nz-select [(ngModel)]="selectedDesignation" name="dc-designation" nzPlaceHolder="-- Select Designation --"
+                (ngModelChange)="onDesignationChange()" nzAllowClear>
+                <nz-option *ngFor="let d of designations" [nzLabel]="d.Name || d.label" [nzValue]="d"></nz-option>
+              </nz-select>
+            </div>
+          </div>
+          <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+            <div class="form-section">
+              <label class="form-section-label">Employee</label>
+              <nz-select [(ngModel)]="selectedEmployee" name="dc-employee" nzPlaceHolder="-- Select Employee --"
+                (ngModelChange)="onEmployeeSelect(selectedEmployee)" nzShowSearch nzAllowClear [nzDisabled]="!filteredEmployees.length">
+                <nz-option *ngFor="let e of filteredEmployees" [nzLabel]="getEmployeeLabel(e)" [nzValue]="e"></nz-option>
+              </nz-select>
+            </div>
+          </div>
+        </ng-container>
+        <!-- Regular user: simple employee select -->
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" *ngIf="!isPlantAdmin">
+          <div class="form-section">
+            <label class="form-section-label">Contact Person</label>
+            <nz-select [(ngModel)]="model.WhomtoMeet" name="whomtomeet" nzPlaceHolder="-- Select --">
+                <nz-option *ngFor="let e of employees" [nzLabel]="getEmployeeLabel(e)" [nzValue]="e.Id"></nz-option>
+              </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">ID Card <span class="text-danger">*</span></label>
+            <input nz-input [(ngModel)]="model.IdCard" name="idcard" required placeholder="ID card number">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Accessories</label>
+            <input nz-input [(ngModel)]="model.Accessories" name="accessories" placeholder="Laptop, bag, etc.">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Date</label>
+            <input nz-input [(ngModel)]="model.Date" name="date" type="date" disabled>
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Time</label>
+            <input nz-input [(ngModel)]="model.Time" name="time" type="time">
+          </div>
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button nz-button nzType="primary" nzSize="large" type="submit" [nzLoading]="uploading">
+          <i nz-icon nzType="safety"></i> Check In Visitor
+        </button>
+      </div>
+    </form>
+  </nz-card>
+
+</div>

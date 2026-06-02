@@ -1,0 +1,76 @@
+<div class="public-page">
+  <div class="public-card fade-in">
+
+    <div class="public-header">
+      <div class="public-icon">📩</div>
+      <h1>Accept Invitation</h1>
+      <p>Confirm your details to accept the invitation</p>
+    </div>
+
+    <div class="public-body">
+
+      <!-- OTP Step -->
+      <div *ngIf="step === 'otp'">
+        <h4>Enter Your Invitation Code</h4>
+        <div style="text-align:center">
+          <p class="text-muted" style="margin-bottom:16px">Enter the 6-digit code from your invitation email</p>
+          <input nz-input [(ngModel)]="otpValue" maxlength="6" (input)="otpValue.length===6 && verifyOtp()"
+            placeholder="______" autofocus class="otp-input">
+        </div>
+      </div>
+
+      <!-- Form Step -->
+      <div *ngIf="step === 'form'">
+        <h4>Confirm Your Details</h4>
+        <div class="public-form-group">
+          <label>Name</label>
+          <input [(ngModel)]="model.Name" name="name" placeholder="Your full name">
+        </div>
+        <div class="public-form-group">
+          <label>Designation</label>
+          <input [(ngModel)]="model.Designation" name="desig" placeholder="Your designation">
+        </div>
+        <div class="public-form-group">
+          <label>Company</label>
+          <input [(ngModel)]="model.Company" name="comp" placeholder="Your company">
+        </div>
+        <div class="public-form-group">
+          <label>Purpose</label>
+          <input [(ngModel)]="model.Purpose" name="purp" placeholder="Purpose of visit">
+        </div>
+        <div class="public-form-group">
+          <label>Email</label>
+          <input [(ngModel)]="model.PMail" name="email" type="email" placeholder="Your email address">
+        </div>
+        <div class="public-form-group">
+          <label>Mobile</label>
+          <input [(ngModel)]="model.Mobile" name="mob" placeholder="Your mobile number" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number">
+        </div>
+        <button class="public-btn public-btn-primary" (click)="accept()">
+          <i nz-icon nzType="check-circle"></i> Accept Invitation
+        </button>
+      </div>
+
+      <!-- Rejected Step -->
+      <div *ngIf="step === 'rejected'" class="public-done">
+        <span class="done-icon" style="font-size:64px">❌</span>
+        <h3 style="color:#ff4d4f">Invitation Rejected</h3>
+        <p style="color:#666;margin-bottom:16px">{{ rejectMessage }}</p>
+        <div style="margin-top:16px;padding:12px;background:#fff2f0;border-radius:8px;font-size:13px;color:#cf1322">
+          Please contact your host for more information.
+        </div>
+      </div>
+
+      <!-- Done Step -->
+      <div *ngIf="step === 'done'" class="public-done">
+        <span class="done-icon">✅</span>
+        <h3>Invitation Accepted!</h3>
+        <p>Your invitation has been accepted successfully.</p>
+        <div style="margin-top:16px;padding:12px;background:#f0f9ff;border-radius:8px;font-size:13px;color:#555">
+          Thank you for confirming your details. Your host has been notified.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

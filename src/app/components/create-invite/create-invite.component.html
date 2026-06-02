@@ -1,0 +1,70 @@
+<div class="fade-in">
+  <nz-card nzTitle="Create Invitation">
+    <nz-divider nzText="Visitor Details" nzOrientation="left" style="margin:0 0 12px"></nz-divider>
+    <div nz-row [nzGutter]="[16,16]">
+      <div nz-col [nzSpan]="12">
+        <div class="form-section"><label>Full Name <span class="required">*</span></label><input nz-input [(ngModel)]="model.Name" placeholder="Visitor's full name"></div>
+      </div>
+      <div nz-col [nzSpan]="12">
+        <div class="form-section"><label>Email Address <span class="required">*</span></label><input nz-input [(ngModel)]="model.PMail" type="email" placeholder="email@example.com"></div>
+      </div>
+      <div nz-col [nzSpan]="12">
+        <div class="form-section"><label>Mobile Number</label><input nz-input [(ngModel)]="model.Mobile" placeholder="10-digit mobile number" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number"></div>
+      </div>
+      <div nz-col [nzSpan]="12">
+        <div class="form-section"><label>Company Name</label><input nz-input [(ngModel)]="model.Company" placeholder="Company"></div>
+      </div>
+      <div nz-col [nzSpan]="12">
+        <div class="form-section"><label>Designation</label><input nz-input [(ngModel)]="model.Designation" placeholder="e.g. Manager"></div>
+      </div>
+      <div nz-col [nzSpan]="12">
+        <div class="form-section"><label>Category</label>
+          <nz-select [(ngModel)]="model.Category" nzPlaceHolder="Select Category" style="width:100%">
+            <nz-option *ngFor="let c of categories" [nzValue]="c.Name" [nzLabel]="c.Name"></nz-option>
+          </nz-select>
+        </div>
+      </div>
+      <div nz-col [nzSpan]="12">
+        <div class="form-section"><label>Purpose of Visit</label>
+          <nz-select [(ngModel)]="model.Purpose" nzPlaceHolder="Select purpose" style="width:100%">
+            <nz-option *ngFor="let v of visitPurposes" [nzValue]="v.Name" [nzLabel]="v.Name"></nz-option>
+          </nz-select>
+        </div>
+      </div>
+      <div nz-col [nzSpan]="12">
+        <div class="form-section"><label>Visit Date</label><nz-date-picker [(ngModel)]="model.Date" [nzDisabledDate]="disabledDate" style="width:100%"></nz-date-picker></div>
+      </div>
+      <div nz-col [nzSpan]="12">
+        <div class="form-section"><label>Visit Time</label><nz-time-picker [(ngModel)]="model.Time" nzFormat="HH:mm" style="width:100%"></nz-time-picker></div>
+      </div>
+    </div>
+
+    <nz-divider nzText="Your Contact Info" nzOrientation="left" style="margin:12px 0"></nz-divider>
+    <div nz-row [nzGutter]="[16,16]">
+      <div nz-col [nzSpan]="8">
+        <div class="form-section"><label>Your Name</label><input nz-input [(ngModel)]="model.WName" disabled></div>
+      </div>
+      <div nz-col [nzSpan]="8">
+        <div class="form-section"><label>Your Email</label><input nz-input [(ngModel)]="model.WEmail" disabled></div>
+      </div>
+      <div nz-col [nzSpan]="8">
+        <div class="form-section"><label>Your Mobile</label><input nz-input [(ngModel)]="model.WMobile" disabled></div>
+      </div>
+    </div>
+
+    <button nz-button nzType="primary" nzSize="large" [nzLoading]="loading" (click)="submit()" class="invite-submit-btn">
+      <i nz-icon nzType="send"></i> Send Invitation
+    </button>
+  </nz-card>
+
+  <nz-card nzTitle="My Invitations">
+    <nz-table #ci [nzData]="myInvites" [nzPageSize]="5" nzSize="small">
+      <thead><tr><th>Name</th><th>Email</th><th>Category</th><th>Purpose</th><th>Status</th></tr></thead>
+      <tbody><tr *ngFor="let v of ci.data">
+        <td><span class="visitor-name">{{ v.Name }}</span></td><td>{{ v.PMail }}</td><td>{{ v.Category || '-' }}</td><td>{{ v.Purpose || '-' }}</td>
+        <td><nz-tag [nzColor]="getStatusColor(v.Status)">{{ v.Status }}</nz-tag></td>
+      </tr>
+      <tr *ngIf="myInvites.length === 0"><td colspan="4" style="text-align:center;color:#999;padding:24px">No invitations yet</td></tr></tbody>
+    </nz-table>
+  </nz-card>
+</div>

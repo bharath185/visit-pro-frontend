@@ -1,0 +1,62 @@
+<div class="public-page">
+  <div class="public-card fade-in">
+
+    <div class="public-header">
+      <div class="public-icon">🔐</div>
+      <h1>Visitor Self Check-In</h1>
+      <p>Use your invitation code to check in</p>
+    </div>
+
+    <div class="public-body">
+
+      <!-- OTP Step -->
+      <div *ngIf="step === 'otp'">
+        <h4>Enter Your Check-In Code</h4>
+        <div style="text-align:center">
+          <p class="text-muted" style="margin-bottom:16px">Enter the 6-digit code from your invitation email</p>
+          <input nz-input [(ngModel)]="otpValue" maxlength="6" (keyup.enter)="verifyOtp()"
+            placeholder="______" autofocus class="otp-input" style="letter-spacing:10px">
+          <div *ngIf="loading" style="margin-top:16px"><nz-spin nzSimple></nz-spin></div>
+          <button nz-button nzType="primary" (click)="verifyOtp()"
+            [disabled]="otpValue.length < 4 || loading" [nzLoading]="loading"
+            style="margin-top:16px;min-width:180px;height:44px;border-radius:10px;font-weight:600;font-size:15px">
+            <i nz-icon nzType="check-circle"></i> Check In
+          </button>
+        </div>
+      </div>
+
+      <!-- Check-In Completed Step -->
+      <div *ngIf="step === 'selfverified'" class="checkedin-card">
+        <div class="checkedin-success-icon">
+          <i nz-icon nzType="check-circle" nzTheme="twotone" [nzTwotoneColor]="'#52c41a'"></i>
+        </div>
+        <h2 class="checkedin-title">Check-In Completed!</h2>
+        <p class="checkedin-subtitle">Your check-in has been completed successfully.</p>
+        <div class="checkedin-details" *ngIf="model">
+          <div class="checkedin-row">
+            <span class="checkedin-label">Name</span>
+            <span class="checkedin-value">{{ model.Name || '-' }}</span>
+          </div>
+          <div class="checkedin-row" *ngIf="model.Company">
+            <span class="checkedin-label">Company</span>
+            <span class="checkedin-value">{{ model.Company }}</span>
+          </div>
+          <div class="checkedin-row">
+            <span class="checkedin-label">Meeting</span>
+            <span class="checkedin-value">{{ model.WName || '-' }}</span>
+          </div>
+          <div class="checkedin-row">
+            <span class="checkedin-label">Date</span>
+            <span class="checkedin-value">{{ model.Date | date:'dd-MM-yyyy' }}</span>
+          </div>
+          <div class="checkedin-row">
+            <span class="checkedin-label">Status</span>
+            <span class="checkedin-value" style="color:#52c41a">Checked In</span>
+          </div>
+        </div>
+        <p style="font-size:12px;color:#999;margin-top:24px">Please proceed to the reception. This confirmation is for your reference only.</p>
+      </div>
+
+    </div>
+  </div>
+</div>

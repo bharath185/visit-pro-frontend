@@ -1,0 +1,93 @@
+<div class="login-wrapper">
+  <!-- Decorative Background Elements -->
+  <div class="bg-shape bg-shape-1"></div>
+  <div class="bg-shape bg-shape-2"></div>
+  <div class="bg-shape bg-shape-3"></div>
+  <div class="bg-grid"></div>
+
+  <div class="login-card fade-in">
+    <!-- Brand Side -->
+    <div class="login-brand">
+      <div class="brand-pattern"></div>
+      <div class="brand-content">
+        <div class="brand-badge">
+          <i nz-icon nzType="safety-certificate" nzTheme="twotone" style="font-size:20px"></i>
+          Enterprise
+        </div>
+        <div class="brand-icon-wrapper">
+          <i nz-icon nzType="team" nzTheme="outline"></i>
+        </div>
+        <h1>Visitor Connect</h1>
+        <p class="brand-tagline">Enterprise Visitor Connect</p>
+        <div class="brand-features">
+          <div class="brand-feature">
+            <i nz-icon nzType="check-circle" nzTheme="fill"></i>
+            <span>Pre-registration &amp; approvals</span>
+          </div>
+          <div class="brand-feature">
+            <i nz-icon nzType="check-circle" nzTheme="fill"></i>
+            <span>Real-time check-in &amp; check-out</span>
+          </div>
+          <div class="brand-feature">
+            <i nz-icon nzType="check-circle" nzTheme="fill"></i>
+            <span>Comprehensive visitor analytics</span>
+          </div>
+        </div>
+      </div>
+      <div class="brand-footer">Secure platform with role-based access control</div>
+    </div>
+
+    <!-- Form Side -->
+    <div class="login-form-area">
+      <div class="form-header">
+        <div class="form-logo">
+          <i nz-icon nzType="lock" nzTheme="outline"></i>
+        </div>
+        <h3>Welcome Back</h3>
+        <p class="form-subtitle">Sign in to your account to continue</p>
+      </div>
+
+      <form (ngSubmit)="login()" class="login-form">
+        <div class="form-field">
+          <label class="field-label">Username / Employee Code</label>
+          <nz-input-group [nzPrefix]="userPrefix" nzSize="large">
+            <ng-template #userPrefix>
+              <i nz-icon nzType="user"></i>
+            </ng-template>
+            <input nz-input [(ngModel)]="username" name="username" placeholder="Enter username or emp code"
+              autofocus required #usernameRef="ngModel">
+          </nz-input-group>
+        </div>
+
+        <div class="form-field">
+          <label class="field-label">Password</label>
+          <nz-input-group [nzPrefix]="passPrefix" [nzSuffix]="passSuffix" nzSize="large">
+            <ng-template #passPrefix>
+              <i nz-icon nzType="lock"></i>
+            </ng-template>
+            <ng-template #passSuffix>
+              <i nz-icon [nzType]="passwordVisible ? 'eye-invisible' : 'eye'" class="password-toggle"
+                (click)="passwordVisible = !passwordVisible"></i>
+            </ng-template>
+            <input nz-input [(ngModel)]="password" name="password"
+              [type]="passwordVisible ? 'text' : 'password'" placeholder="Enter password"
+              required #passwordRef="ngModel">
+          </nz-input-group>
+        </div>
+
+        <button nz-button nzType="primary" nzBlock nzSize="large" class="login-btn"
+          [nzLoading]="loading" [disabled]="loading || !username || !password">
+          <span *ngIf="!loading">Sign In</span>
+        </button>
+      </form>
+
+      <div class="form-footer">
+        <a routerLink="/forgot-password">Forgot Password?</a>
+      </div>
+
+      <div class="form-copyright">
+        <i nz-icon nzType="copyright"></i> 2026 RIM India Pvt Limited
+      </div>
+    </div>
+  </div>
+</div>

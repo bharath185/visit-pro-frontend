@@ -1,0 +1,195 @@
+<div class="fade-in">
+  <div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+      <nz-breadcrumb>
+        <nz-breadcrumb-item><a routerLink="/"><i nz-icon nzType="home"></i></a></nz-breadcrumb-item>
+        <nz-breadcrumb-item>Invite Visitor</nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <h2>Invite Visitor</h2>
+    </div>
+    <button nz-button nzType="default" (click)="showForm = !showForm">
+      <i nz-icon [nzType]="showForm ? 'eye' : 'plus'"></i>
+      {{ showForm ? 'View List' : 'New Invite' }}
+    </button>
+  </div>
+
+  <!-- Invite Form -->
+  <nz-card [class.form-hidden]="!showForm" [nzTitle]="'New Invitation'" nzType="inner" class="mb-3">
+    <form (ngSubmit)="submit()" #inviteForm="ngForm">
+      <!-- PlantAdmin: select employee to create invite on behalf of -->
+      <nz-divider *ngIf="isPlantAdmin" nzText="Who to Meet" nzOrientation="left" style="margin:12px 0"></nz-divider>
+      <div nz-row [nzGutter]="[16,0]" *ngIf="isPlantAdmin">
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Designation <span class="text-danger">*</span></label>
+            <nz-select [(ngModel)]="selectedDesignation" name="empDesignation" nzPlaceHolder="Select Designation" nzAllowClear (ngModelChange)="onDesignationChange()">
+              <nz-option *ngFor="let d of designations" [nzLabel]="d.Name || d.label" [nzValue]="d"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Employee <span class="text-danger">*</span></label>
+            <nz-select [(ngModel)]="selectedEmployee" name="selectedEmployee" nzPlaceHolder="Select Employee" nzAllowClear (ngModelChange)="onEmployeeSelect(selectedEmployee)" nzShowSearch>
+              <nz-option *ngFor="let e of filteredEmployees" [nzLabel]="e.Name + ' (' + (e.Field1 || e.Code) + ')'" [nzValue]="e"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+      </div>
+
+      <nz-divider nzText="Visitor Details" style="margin:12px 0"></nz-divider>
+
+      <div nz-row [nzGutter]="[16,0]">
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Visitor Name <span class="text-danger">*</span></label>
+            <input nz-input [(ngModel)]="model.Name" name="name" placeholder="Enter visitor name" required>
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Designation</label>
+            <input nz-input [(ngModel)]="model.Designation" name="designation" placeholder="Visitor designation">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Company</label>
+            <input nz-input [(ngModel)]="model.Company" name="company" placeholder="Visitor company">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Category</label>
+            <nz-select [(ngModel)]="model.Category" name="category" nzPlaceHolder="Select Category">
+              <nz-option *ngFor="let c of categories" [nzValue]="c.Name" [nzLabel]="c.Name"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Purpose of Visit</label>
+            <nz-select [(ngModel)]="model.Purpose" name="purpose" nzPlaceHolder="Select purpose">
+              <nz-option *ngFor="let v of visitPurposes" [nzValue]="v.Name" [nzLabel]="v.Name"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Email <span class="text-danger">*</span></label>
+            <input nz-input [(ngModel)]="model.PMail" name="email" type="email" placeholder="visitor@email.com" required>
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Mobile</label>
+            <input nz-input [(ngModel)]="model.Mobile" name="mobile" placeholder="10-digit mobile number" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Alternate Mobile</label>
+            <input nz-input [(ngModel)]="model.AMobile" name="amobile" placeholder="Alternate mobile" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Visit Date</label>
+            <input nz-input [(ngModel)]="model.Date" name="date" type="date" [min]="today">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Visit Time</label>
+            <input nz-input [(ngModel)]="model.Time" name="time" type="time">
+          </div>
+        </div>
+      </div>
+
+      <nz-divider nzText="Your Contact Info" nzOrientation="left" style="margin:12px 0"></nz-divider>
+      <div nz-row [nzGutter]="[16,0]">
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Your Name</label>
+            <input nz-input [(ngModel)]="model.WName" name="wName" placeholder="Auto-filled" [disabled]="isPlantAdmin && !!selectedEmployee">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Your Email</label>
+            <input nz-input [(ngModel)]="model.WEmail" name="wEmail" placeholder="Auto-filled" [disabled]="isPlantAdmin && !!selectedEmployee">
+          </div>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12" [nzLg]="6">
+          <div class="form-section">
+            <label class="form-section-label">Your Mobile</label>
+            <input nz-input [(ngModel)]="model.WMobile" name="wMobile" placeholder="Auto-filled" [disabled]="isPlantAdmin && !!selectedEmployee" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number">
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-3">
+        <button nz-button nzType="primary" type="submit" [nzLoading]="uploading">
+          <i nz-icon nzType="send"></i> Send Invite
+        </button>
+        <button nz-button nzType="default" type="button" (click)="model={EmpId: auth.currentUser?.EmpId || 1, IsActive: true}; selectedEmployee=null; selectedDesignation=null; filteredEmployees=[]">
+          <i nz-icon nzType="rollback"></i> Reset
+        </button>
+      </div>
+    </form>
+  </nz-card>
+
+  <!-- Invitations Table -->
+  <nz-card [nzTitle]="listTitle">
+    <ng-template #listTitle>
+      <span><i nz-icon nzType="unordered-list"></i> My Invitations
+        <nz-tag nzColor="blue" class="ml-2">{{ filteredVisitors.length }} records</nz-tag>
+      </span>
+    </ng-template>
+
+    <div style="margin-bottom:16px">
+      <input nz-input [(ngModel)]="searchTerm" (ngModelChange)="searchTermChange($event)" placeholder="Search by name or company..." style="max-width:320px" nzPrefixIcon="search">
+    </div>
+
+    <nz-table #iv *ngIf="filteredVisitors.length > 0" [nzData]="filteredVisitors" [nzPageSize]="pageSize"
+      [nzShowPagination]="true" [nzShowSizeChanger]="true" [nzPageSizeOptions]="[5,10,20]" nzSize="small">
+      <thead>
+        <tr>
+          <th nzColumnKey="Date" [nzSortFn]="true">Date</th>
+          <th>Photo</th>
+          <th nzColumnKey="Name" [nzSortFn]="true">Visitor Name</th>
+          <th>Company</th>
+          <th>Category</th>
+          <th>Contact Person</th>
+          <th nzColumnKey="Status" [nzSortFn]="true">Status</th>
+          <th style="text-align:center">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of iv.data">
+          <td>{{ v.Date | date:'dd-MM-yyyy' }}</td>
+          <td>
+            <nz-avatar *ngIf="v.Photo" [nzSrc]="v.Photo" nzSize="small" style="border-radius:4px"></nz-avatar>
+            <span *ngIf="!v.Photo" class="text-muted">—</span>
+          </td>
+          <td><strong>{{ v.Name }}</strong></td>
+          <td>{{ v.Company || '-' }}</td>
+          <td>{{ v.Category || '-' }}</td>
+          <td>{{ v.WName || '-' }}</td>
+          <td><nz-tag [nzColor]="getStatusColor(v.Status || 'Pending')">{{ v.Status || 'Pending' }}</nz-tag></td>
+          <td style="text-align:center">
+            <button *ngIf="v.Status==='Invited'" nz-button nzType="primary" nzDanger nzSize="small" nz-tooltip="Cancel Invite" (click)="cancel(v.VisitId!)">
+              <i nz-icon nzType="close"></i>
+            </button>
+            <span *ngIf="v.Status !== 'Invited'" class="text-muted">—</span>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+    <div *ngIf="filteredVisitors.length === 0" class="empty-state">
+      <i nz-icon nzType="inbox"></i>
+      <p>No invitations found. Create one above!</p>
+    </div>
+  </nz-card>
+
+</div>

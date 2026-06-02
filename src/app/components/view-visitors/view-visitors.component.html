@@ -1,0 +1,273 @@
+<div class="fade-in">
+  <!-- Page Header -->
+  <div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+      <nz-breadcrumb>
+        <nz-breadcrumb-item><a routerLink="/"><i nz-icon nzType="home"></i></a></nz-breadcrumb-item>
+        <nz-breadcrumb-item>View Visitors</nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <h2>All Visitors</h2>
+    </div>
+  </div>
+
+  <nz-card [nzTitle]="cardTitle">
+    <ng-template #cardTitle>
+      <span><i nz-icon nzType="team"></i> Visitor Records</span>
+    </ng-template>
+
+    <!-- Filter Bar -->
+    <div nz-row [nzGutter]="[12,12]" style="margin-bottom:16px">
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-date-picker [(ngModel)]="dateFrom" (ngModelChange)="applyFilters()" nzPlaceHolder="From Date" style="width:100%"></nz-date-picker>
+      </div>
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-date-picker [(ngModel)]="dateTo" (ngModelChange)="applyFilters()" nzPlaceHolder="To Date" style="width:100%"></nz-date-picker>
+      </div>
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-select [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" nzPlaceHolder="All Statuses" nzAllowClear style="width:100%">
+          <nz-option *ngFor="let s of statusOptions" [nzLabel]="s || 'All Statuses'" [nzValue]="s"></nz-option>
+        </nz-select>
+      </div>
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-select [(ngModel)]="filterCategory" (ngModelChange)="applyFilters()" nzPlaceHolder="All Categories" nzAllowClear style="width:100%">
+          <nz-option *ngFor="let c of categoryOptions" [nzLabel]="c.Name" [nzValue]="c.Name"></nz-option>
+        </nz-select>
+      </div>
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <div class="d-flex gap-2" style="flex-wrap:wrap">
+          <input nz-input [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search name, company..." style="flex:1;min-width:140px" nzPrefixIcon="search">
+          <button nz-button nzType="default" nz-tooltip="Reset Filters" (click)="resetFilters()">
+            <i nz-icon nzType="close"></i>
+          </button>
+          <button nz-button nzType="default" nz-tooltip="Export CSV" (click)="exportCsv()">
+            <i nz-icon nzType="download"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <nz-table #vt *ngIf="!loading && filtered.length > 0" [nzData]="filtered" [nzPageSize]="pageSize"
+      [nzShowPagination]="true" [nzShowSizeChanger]="true" [nzPageSizeOptions]="[5,10,20]" nzSize="small">
+      <thead>
+        <tr>
+          <th nzColumnKey="Date" [nzSortFn]="true">Date</th>
+          <th nzColumnKey="Name" [nzSortFn]="true">Name</th>
+          <th>Company</th>
+          <th>Category</th>
+          <th>Contact Person</th>
+          <th>Check In</th>
+          <th>Check Out</th>
+          <th>Duration</th>
+          <th>Status</th>
+          <th style="width:60px">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of vt.data" style="cursor:pointer" (click)="view(v)">
+          <td>{{ v.Date | date:'dd-MM-yyyy' }}</td>
+          <td><strong>{{ v.Name }}</strong></td>
+          <td>{{ v.Company || '-' }}</td>
+          <td>{{ v.Category || '-' }}</td>
+          <td>{{ v.WName || '-' }}</td>
+          <td>{{ v.CheckIn ? (v.CheckIn | date:'short') : '-' }}</td>
+          <td>{{ v.CheckOut ? (v.CheckOut | date:'short') : '-' }}</td>
+          <td>{{ getDuration(v.CheckIn, v.CheckOut) }}</td>
+          <td><nz-tag [nzColor]="getStatusColor(v.Status || 'Pending')">{{ v.Status || 'Pending' }}</nz-tag></td>
+          <td>
+            <button nz-button nzType="primary" nzSize="small" (click)="view(v); $event.stopPropagation()">
+              <i nz-icon nzType="eye"></i>
+            </button>
+            <button nz-button nzSize="small" nzType="default" *ngIf="v.CheckIn && !v.CheckOut && v.CreatedBy === auth.currentUser?.EmpId && !auth.isPlantAdmin()" (click)="regenerateOtpForRow(v); $event.stopPropagation()" style="margin-left:4px">
+              <i nz-icon nzType="reload"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    <div *ngIf="loading" style="text-align:center;padding:40px">
+      <nz-spin></nz-spin>
+    </div>
+
+    <div *ngIf="!loading && filtered.length === 0" class="empty-state">
+      <i nz-icon nzType="inbox"></i>
+      <p>No visitors found matching your criteria</p>
+    </div>
+  </nz-card>
+
+  <!-- Detail Modal -->
+  <nz-modal [(nzVisible)]="showVisitorDialog" nzTitle="Visitor Details"
+    (nzOnCancel)="selectedVisitor=null; showVisitorDialog=false" [nzWidth]="700"
+    [nzMaskClosable]="false">
+    <ng-template [nzModalContent]>
+      <div *ngIf="selectedVisitor">
+        <div nz-row [nzGutter]="[16,8]">
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Name</label>
+              <p style="font-weight:600;font-size:15px;margin:0">{{ selectedVisitor.Name }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Company</label>
+              <p style="margin:0">{{ selectedVisitor.Company || '-' }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Designation</label>
+              <p style="margin:0">{{ selectedVisitor.Designation || '-' }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Purpose</label>
+              <p style="margin:0">{{ selectedVisitor.Purpose || '-' }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Email</label>
+              <p style="margin:0">{{ selectedVisitor.PMail || '-' }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Mobile</label>
+              <p style="margin:0">{{ selectedVisitor.Mobile || '-' }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Contact Person</label>
+              <p style="margin:0">{{ selectedVisitor.WName || '-' }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Date / Time</label>
+              <p style="margin:0">{{ selectedVisitor.Date | date:'dd-MM-yyyy' }} {{ selectedVisitor.Time || '' }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Check In</label>
+              <p style="margin:0">{{ selectedVisitor.CheckIn ? (selectedVisitor.CheckIn | date:'medium') : '- Not checked in -' }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Check Out</label>
+              <p style="margin:0">{{ selectedVisitor.CheckOut ? (selectedVisitor.CheckOut | date:'medium') : '- Not checked out -' }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Duration</label>
+              <p style="margin:0;font-weight:600">{{ getDuration(selectedVisitor.CheckIn, selectedVisitor.CheckOut) }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">ID Card</label>
+              <p style="margin:0">{{ selectedVisitor.IdCard || '-' }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12" *ngIf="selectedVisitor.CheckIn && !selectedVisitor.CheckOut">
+            <div class="form-section">
+              <label class="form-section-label">Checkout OTP</label>
+              <p style="margin:0;font-size:22px;font-weight:700;letter-spacing:4px;color:#1890ff;font-family:monospace">{{ selectedVisitor.CheckoutCode || selectedVisitor.CheckInCode || 'N/A' }}</p>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Accessories</label>
+              <p style="margin:0">{{ selectedVisitor.Accessories || '-' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editable fields during check-in -->
+        <nz-divider nzText="Check-In / Check-Out Actions" style="margin:16px 0"></nz-divider>
+
+        <div nz-row [nzGutter]="[16,0]">
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">ID Card</label>
+              <input nz-input [(ngModel)]="selectedVisitor.IdCard" name="modal-idcard" placeholder="Enter ID card number">
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div class="form-section">
+              <label class="form-section-label">Accessories</label>
+              <input nz-input [(ngModel)]="selectedVisitor.Accessories" name="modal-accessories" placeholder="Laptop, bag, etc.">
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12" *ngIf="isPlantAdmin && !selectedVisitor?.CheckIn">
+            <div class="form-section">
+              <label class="form-section-label">Check-In Code</label>
+              <input nz-input [(ngModel)]="plantAdminCheckInCode" name="modal-checkin-code" placeholder="Enter check-in code">
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12" *ngIf="isPlantAdmin && selectedVisitor?.CheckIn && !selectedVisitor?.CheckOut">
+            <div class="form-section">
+              <label class="form-section-label">Check-Out Code</label>
+              <div style="font-size:12px;color:#888;margin-bottom:4px">Use code: <strong>{{ selectedVisitor.CheckoutCode || selectedVisitor.CheckInCode || 'N/A' }}</strong></div>
+              <input nz-input [(ngModel)]="plantAdminCheckOutCode" name="modal-checkout-code" placeholder="Enter check-out code">
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <div *nzModalFooter>
+      <button nz-button nzType="default" (click)="closeVisitorDetail()">Close</button>
+
+
+
+      <!-- Direct Check-In (Approved) - Plant Admin simple check-in without OTP -->
+      <button nz-button nzType="primary" *ngIf="isPlantAdmin && selectedVisitor?.Status === 'Approved' && !selectedVisitor?.CheckIn" (click)="doDirectCheckIn()"
+        [disabled]="!selectedVisitor?.VisitId" [nzLoading]="directCheckInLoading">
+        <i nz-icon nzType="safety"></i> Check In
+      </button>
+
+      <!-- Plant Admin check-in with OTP (for non-direct) -->
+      <button nz-button nzType="primary" nzDanger *ngIf="isPlantAdmin && !selectedVisitor?.CheckIn && !selectedVisitor?.CheckOut && selectedVisitor?.Status !== 'Approved'" (click)="doPlantAdminCheckIn()"
+        [disabled]="!selectedVisitor?.VisitId || !plantAdminCheckInCode" [nzLoading]="plantAdminCheckingIn">
+        <i nz-icon nzType="safety"></i> Verify &amp; Check In
+      </button>
+
+      <!-- Regular user check-in -->
+      <button nz-button [nzType]="'primary'" nzDanger *ngIf="!isPlantAdmin && !selectedVisitor?.CheckOut" (click)="doCheckIn()"
+        [disabled]="!selectedVisitor?.VisitId || selectedVisitor?.CheckIn || selectedVisitor?.Status !== 'Self Verified'" [nzLoading]="checkingIn">
+        <i nz-icon nzType="safety"></i> Check In
+      </button>
+
+      <!-- Direct Check-Out - Plant Admin simple check-out without OTP -->
+      <button nz-button nzType="primary" *ngIf="isPlantAdmin && selectedVisitor?.CheckIn && !selectedVisitor?.CheckOut && selectedVisitor?.DirectCheckIn" (click)="doDirectCheckOut()"
+        [disabled]="!selectedVisitor?.VisitId" [nzLoading]="directCheckOutLoading">
+        <i nz-icon nzType="rollback"></i> Check Out
+      </button>
+
+      <!-- Plant Admin check-out with OTP -->
+      <button nz-button nzType="primary" *ngIf="isPlantAdmin && selectedVisitor?.CheckIn && !selectedVisitor?.CheckOut && !selectedVisitor?.DirectCheckIn" (click)="doPlantAdminCheckOut()"
+        [disabled]="!selectedVisitor?.VisitId || !plantAdminCheckOutCode" [nzLoading]="plantAdminCheckingOut">
+        <i nz-icon nzType="rollback"></i> Verify &amp; Check Out
+      </button>
+
+      <!-- Regenerate OTP (Host only) -->
+      <button nz-button nzType="default" *ngIf="selectedVisitor?.CheckIn && !selectedVisitor?.CheckOut && selectedVisitor?.CreatedBy === auth.currentUser?.EmpId && !auth.isPlantAdmin()" (click)="regenerateOtp()">
+        <i nz-icon nzType="reload"></i> Regenerate OTP
+      </button>
+
+      <!-- Regular user check-out -->
+      <button nz-button nzType="primary" *ngIf="!isPlantAdmin && selectedVisitor?.CheckIn && !selectedVisitor?.CheckOut" (click)="doCheckOut()"
+        [disabled]="!selectedVisitor?.VisitId" [nzLoading]="checkingOut">
+        <i nz-icon nzType="rollback"></i> Check Out
+      </button>
+
+    </div>
+  </nz-modal>
+
+</div>

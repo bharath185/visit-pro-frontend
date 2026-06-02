@@ -1,0 +1,118 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
+import { EChartsOption } from 'echarts';
+
+const API = 'http://192.168.2.45:8081/api';
+
+@Component({
+  selector: 'app-super-admin-dashboard',
+  templateUrl: './super-admin-dashboard.component.html'
+})
+export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
+  user: any = null;
+  loading = true;
+  headerMetrics: any = {};
+  recentVisitors: any[] = [];
+  dateRange: Date[] = [this.subDays(6), new Date()];
+  private timer: any;
+
+  doughnutOption: EChartsOption = {};
+  barOption: EChartsOption = {};
+  trendOption: EChartsOption = {};
+
+  constructor(private http: HttpClient, public auth: AuthService) {
+    this.user = auth.currentUser;
+  }
+
+  ngOnInit(): void {
+    this.loadDashboard();
+    this.timer = setInterval(() => this.loadDashboard(), 60000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.timer) clearInterval(this.timer);
+  }
+
+  private subDays(d: number): Date {
+    const dt = new Date();
+    dt.setDate(dt.getDate() - d);
+    return dt;
+  }
+
+  loadDashboard(): void {
+    this.loading = true;
+    this.http.get<any>(API + '/visitor/dashboard').subscribe({
+      next: m => { this.headerMetrics = m; this.buildCharts(); },
+      error: () => {}
+    });
+    this.http.post<any[]>(API + '/visitor/list', {}).subscribe({
+      next: v => { this.recentVisitors = Array.isArray(v) ? v : []; this.buildCharts(); this.loading = false; },
+      error: () => { this.loading = false; }
+    });
+  }
+
+  onDateRangeChange(): void {
+    this.buildCharts();
+  }
+
+  buildCharts(): void {
+    const inv = this.headerMetrics.TotalInvited || 0;
+    const acc = this.headerMetrics.TotalAccepted || 0;
+    const cin = this.headerMetrics.TotalCheckedIn || 0;
+    const cout = this.headerMetrics.TotalCheckedOut || 0;
+    this.doughnutOption = {
+      tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+      legend: { bottom: 0, itemWidth: 8, itemHeight: 8, textStyle: { fontSize: 10 } },
+      series: [{ type: 'pie', radius: ['45%', '72%'], center: ['50%', '42%'], label: { show: false },
+        data: [
+          { value: inv, name: 'Invited', itemStyle: { color: '#1890ff' } },
+          { value: acc, name: 'Accepted', itemStyle: { color: '#52c41a' } },
+          { value: cin, name: 'Checked In', itemStyle: { color: '#fa8c16' } },
+          { value: cout, name: 'Checked Out', itemStyle: { color: '#13c2c2' } }
+        ] }]
+    };
+    this.barOption = {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      grid: { left: 50, right: 10, top: 10, bottom: 24 },
+      xAxis: { type: 'value', axisLabel: { fontSize: 10 } },
+      yAxis: { type: 'category', data: ['Invited', 'Accepted', 'Checked In', 'Checked Out'], axisLabel: { fontSize: 10 }, axisLine: { show: false }, axisTick: { show: false } },
+      series: [{ type: 'bar', data: [inv, acc, cin, cout], barWidth: 14,
+        itemStyle: { borderRadius: [0, 4, 4, 0], color: (p: any) => ['#1890ff', '#52c41a', '#fa8c16', '#13c2c2'][p.dataIndex] },
+        label: { show: true, position: 'right', fontSize: 10, fontWeight: 600 } }]
+    };
+    const map = new Map<string, { visitors: number; checkins: number; checkouts: number }>();
+    const from = new Date(this.dateRange[0]);
+    const to = new Date(this.dateRange[1]);
+    const cur = new Date(from);
+    while (cur <= to) {
+      const key = cur.toISOString().substring(0, 10);
+      map.set(key, { visitors: 0, checkins: 0, checkouts: 0 });
+      cur.setDate(cur.getDate() + 1);
+    }
+    for (const v of this.recentVisitors) {
+      if (!v.Date) continue;
+      const key = new Date(v.Date).toISOString().substring(0, 10);
+      const entry = map.get(key);
+      if (entry) { entry.visitors++; if (v.CheckIn) entry.checkins++; if (v.CheckOut) entry.checkouts++; }
+    }
+    const trendData = Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([d, v]) => ({ date: d, ...v }));
+    this.trendOption = {
+      tooltip: { trigger: 'axis' },
+      legend: { data: ['Visitors', 'Check-Ins', 'Check-Outs'], bottom: 0, icon: 'circle', itemWidth: 8, itemHeight: 8, textStyle: { fontSize: 10 } },
+      grid: { left: 40, right: 10, top: 10, bottom: 36 },
+      xAxis: { type: 'category', data: trendData.map(d => d.date.substring(5)), axisLabel: { fontSize: 10 }, axisTick: { show: false } },
+      yAxis: { type: 'value', axisLabel: { fontSize: 10 }, splitLine: { lineStyle: { type: 'dashed' } } },
+      series: [
+        { name: 'Visitors', type: 'line', smooth: true, symbol: 'circle', symbolSize: 6, data: trendData.map(d => d.visitors), lineStyle: { color: '#1890ff', width: 2 }, itemStyle: { color: '#1890ff' }, areaStyle: { color: 'rgba(24,144,255,0.08)' } },
+        { name: 'Check-Ins', type: 'line', smooth: true, symbol: 'circle', symbolSize: 6, data: trendData.map(d => d.checkins), lineStyle: { color: '#52c41a', width: 2 }, itemStyle: { color: '#52c41a' }, areaStyle: { color: 'rgba(82,196,26,0.08)' } },
+        { name: 'Check-Outs', type: 'line', smooth: true, symbol: 'circle', symbolSize: 6, data: trendData.map(d => d.checkouts), lineStyle: { color: '#fa8c16', width: 2 }, itemStyle: { color: '#fa8c16' }, areaStyle: { color: 'rgba(250,140,22,0.08)' } }
+      ]
+    };
+  }
+
+  getStatusColor(s: string): string {
+    const m: any = { 'Invited': 'blue', 'Invite Accepted': 'green', 'Checked In': 'orange', 'Checked Out': 'cyan', 'Cancelled': 'red', 'Expired': 'red', 'Pending Approval': 'purple', 'Approved': 'lime' };
+    return m[s] || 'default';
+  }
+}

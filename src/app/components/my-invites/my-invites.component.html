@@ -1,0 +1,32 @@
+<div class="fade-in">
+  <nz-card [nzTitle]="'My Invitations ('+invites.length+')'">
+    <div style="margin-bottom:12px">
+      <input nz-input [(ngModel)]="searchTerm" (ngModelChange)="searchChange($event)" placeholder="Search by name or company..." nzPrefixIcon="search" style="max-width:320px">
+    </div>
+    <nz-table #mi [nzData]="filtered" [nzPageSize]="10" [nzLoading]="loading" nzSize="small">
+      <thead>
+        <tr><th nzColumnKey="Date" [nzSortFn]="true">Date</th><th nzColumnKey="Name" [nzSortFn]="true">Visitor</th><th>Email</th><th>Company</th><th>Purpose</th><th>Status</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of mi.data">
+          <td>{{ v.Date ? (v.Date|date:'dd-MM-yyyy') : '-' }}</td>
+          <td><strong>{{ v.Name }}</strong></td>
+          <td>{{ v.PMail || '-' }}</td>
+          <td>{{ v.Company || '-' }}</td>
+          <td>{{ v.Purpose || '-' }}</td>
+          <td><nz-tag [nzColor]="getStatusColor(v.Status)">{{ v.Status || 'Pending' }}</nz-tag></td>
+          <td>
+            <button nz-button nzSize="small" nzType="default" (click)="showDetail(v)" nz-tooltip="View Details" style="margin-right:4px"><i nz-icon nzType="eye"></i></button>
+            <button *ngIf="v.Status === 'Pending Approval'" nz-button nzSize="small" nzType="primary" (click)="approveVisit(v.VisitId)" style="margin-right:4px"><i nz-icon nzType="check"></i> Approve</button>
+            <button *ngIf="v.Status === 'Pending Approval'" nz-button nzSize="small" nzDanger (click)="rejectVisit(v.VisitId)" style="margin-right:4px"><i nz-icon nzType="close"></i> Reject</button>
+            <button *ngIf="v.Status === 'Invited'" nz-button nzSize="small" nzDanger (click)="cancelInvite(v.VisitId)"><i nz-icon nzType="close"></i></button>
+            <button *ngIf="v.Status === 'Checked In' && !auth.isPlantAdmin()" nz-button nzSize="small" nzType="default" (click)="regenerateOtp(v.VisitId)" nz-tooltip="Regenerate Checkout OTP"><i nz-icon nzType="reload"></i></button>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+    <div *ngIf="!loading && filtered.length === 0" class="empty-state"><i nz-icon nzType="inbox"></i><p>No invitations found</p></div>
+  </nz-card>
+
+
+</div>

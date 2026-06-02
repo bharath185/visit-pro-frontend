@@ -1,0 +1,58 @@
+<div class="fade-in">
+  <div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+      <nz-breadcrumb>
+        <nz-breadcrumb-item><a routerLink="/"><i nz-icon nzType="home"></i></a></nz-breadcrumb-item>
+        <nz-breadcrumb-item>Notifications</nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <h2>Notifications <nz-tag nzColor="red" *ngIf="unreadCount > 0">{{ unreadCount }}</nz-tag></h2>
+    </div>
+    <button nz-button nzType="default" (click)="markAllRead()" [disabled]="unreadCount === 0">
+      <i nz-icon nzType="check-circle"></i> Mark All Read
+    </button>
+  </div>
+
+  <nz-card>
+    <div *ngIf="loading" style="text-align:center;padding:40px">
+      <nz-spin></nz-spin>
+    </div>
+
+    <div *ngIf="!loading && notifications.length === 0" class="empty-state">
+      <i nz-icon nzType="bell" style="font-size:40px;opacity:0.3"></i>
+      <p>No notifications yet</p>
+    </div>
+
+    <div *ngIf="!loading && notifications.length > 0">
+      <div *ngFor="let n of notifications"
+        style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border-color);cursor:pointer;transition:background 0.15s"
+        [style.background]="n.isRead ? 'transparent' : '#f0f7ff'"
+        (click)="markRead(n)">
+        <div style="flex-shrink:0;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center"
+          [style.background]="getColor(n.type) + '18'">
+          <i nz-icon [nzType]="getIcon(n.type)" [style.color]="getColor(n.type)" style="font-size:16px"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <strong [style.fontWeight]="n.isRead ? '500' : '700'" style="font-size:13px">{{ n.title }}</strong>
+            <span style="font-size:11px;color:var(--text-muted);white-space:nowrap;margin-left:8px">{{ n.createdDate | date:'shortDate' }}</span>
+          </div>
+          <p style="margin:2px 0 0;font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ n.message }}</p>
+          <div *ngIf="n.title === 'Approval Required'" style="margin-top:8px;display:flex;gap:6px">
+            <button nz-button nzSize="small" nzType="primary" nzDanger (click)="rejectApproval(n, $event)"><i nz-icon nzType="close"></i> Reject</button>
+            <button nz-button nzSize="small" nzType="primary" style="background:#52c41a;border-color:#52c41a" (click)="approveApproval(n, $event)"><i nz-icon nzType="check"></i> Approve</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button nz-button nzType="text" nzSize="small"
+            (click)="toggleStar(n, $event)"
+            [nzDanger]="n.isStarred">
+            <i nz-icon [nzType]="n.isStarred ? 'star' : 'star'" [nzTheme]="n.isStarred ? 'fill' : 'outline'"></i>
+          </button>
+          <button nz-button nzType="text" nzSize="small" nzDanger (click)="deleteNotif(n, $event)">
+            <i nz-icon nzType="delete"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nz-card>
+</div>

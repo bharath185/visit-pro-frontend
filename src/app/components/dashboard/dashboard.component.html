@@ -1,0 +1,138 @@
+<div class="fade-in" style="height:calc(100vh - var(--header-height) - 28px);display:flex;flex-direction:column;gap:16px;overflow:hidden">
+  <div *ngIf="loading" style="padding:20px 0">
+    <nz-skeleton [nzActive]="true" [nzParagraph]="{ rows: 2 }" style="margin-bottom:16px"></nz-skeleton>
+    <div nz-row [nzGutter]="[16,16]">
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6" *ngFor="let _ of [1,2,3,4]">
+        <nz-skeleton [nzActive]="true" [nzParagraph]="{ rows: 1 }" [nzTitle]="false"></nz-skeleton>
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <!-- Welcome Header -->
+    <div style="background:linear-gradient(135deg,#0a2540 0%,#0f3560 50%,#1a5088 100%);border-radius:12px;padding:16px 24px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:14px">
+        <nz-avatar [nzText]="user?.FullName?.charAt(0)?.toUpperCase()" nzSize="default"
+          style="background:rgba(255,255,255,0.15);color:#fff;font-size:16px;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center"></nz-avatar>
+        <div>
+          <div style="font-size:16px;font-weight:700">Welcome, {{ user?.FullName }}</div>
+          <div style="opacity:0.6;font-size:12px">{{ user?.DesignationName || '' }} &middot; {{ user?.DeptName || '' }}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:8px 16px;text-align:center;backdrop-filter:blur(10px)">
+          <div style="font-size:20px;font-weight:700;line-height:1.2">{{ headerMetrics.TodayVisitors || 0 }}</div>
+          <div style="font-size:10px;opacity:0.6">Today</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:8px 16px;text-align:center;backdrop-filter:blur(10px)">
+          <div style="font-size:20px;font-weight:700;line-height:1.2">{{ headerMetrics.TotalCheckedIn || 0 }}</div>
+          <div style="font-size:10px;opacity:0.6">Checked In</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metric Cards -->
+    <div nz-row [nzGutter]="[16,16]" style="flex-shrink:0">
+      <div nz-col [nzXs]="12" [nzSm]="6">
+        <div class="metric-card" style="background:linear-gradient(135deg,#1890ff,#096dd9);padding:20px 22px">
+          <i nz-icon nzType="send" class="metric-icon" style="font-size:24px;top:14px;right:16px"></i>
+          <div class="metric-value">{{ metrics.totalVisitors }}</div>
+          <div class="metric-label">Total Visitors</div>
+        </div>
+      </div>
+      <div nz-col [nzXs]="12" [nzSm]="6">
+        <div class="metric-card" style="background:linear-gradient(135deg,#52c41a,#389e0d);padding:20px 22px">
+          <i nz-icon nzType="check-circle" class="metric-icon" style="font-size:24px;top:14px;right:16px"></i>
+          <div class="metric-value">{{ metrics.totalAccepted }}</div>
+          <div class="metric-label">Accepted</div>
+        </div>
+      </div>
+      <div nz-col [nzXs]="12" [nzSm]="6">
+        <div class="metric-card" style="background:linear-gradient(135deg,#fa8c16,#d46b08);padding:20px 22px">
+          <i nz-icon nzType="safety" class="metric-icon" style="font-size:24px;top:14px;right:16px"></i>
+          <div class="metric-value">{{ metrics.totalCheckedIn }}</div>
+          <div class="metric-label">Checked In</div>
+        </div>
+      </div>
+      <div nz-col [nzXs]="12" [nzSm]="6">
+        <div class="metric-card" style="background:linear-gradient(135deg,#13c2c2,#08979c);padding:20px 22px">
+          <i nz-icon nzType="rollback" class="metric-icon" style="font-size:24px;top:14px;right:16px"></i>
+          <div class="metric-value">{{ metrics.totalCheckedOut }}</div>
+          <div class="metric-label">Checked Out</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div nz-row [nzGutter]="[16,16]" style="flex-shrink:0">
+      <div nz-col [nzXs]="24" [nzLg]="8">
+        <nz-card nzTitle="Status Distribution" style="margin-bottom:0" [nzBodyStyle]="{'padding':'16px'}">
+          <div echarts [options]="doughnutOption" style="height:180px"></div>
+        </nz-card>
+      </div>
+      <div nz-col [nzXs]="24" [nzLg]="8">
+        <nz-card nzTitle="Status Count" style="margin-bottom:0" [nzBodyStyle]="{'padding':'16px'}">
+          <div echarts [options]="barOption" style="height:180px"></div>
+        </nz-card>
+      </div>
+      <div nz-col [nzXs]="24" [nzLg]="8">
+        <nz-card [nzTitle]="trendTitle" style="margin-bottom:0" [nzBodyStyle]="{'padding':'16px'}">
+          <ng-template #trendTitle>
+            <span style="display:flex;align-items:center;gap:8px">
+              <i nz-icon nzType="bar-chart"></i> Trend
+              <nz-range-picker
+                [(ngModel)]="dateRange"
+                (ngModelChange)="onDateRangeChange()"
+                nzSize="small"
+                nzFormat="yyyy-MM-dd"
+                style="width:240px">
+              </nz-range-picker>
+            </span>
+          </ng-template>
+          <div echarts [options]="trendOption" style="height:200px"></div>
+        </nz-card>
+      </div>
+    </div>
+
+    <!-- Visitors Table (scrollable) -->
+    <nz-card [nzTitle]="visitorsTitle" style="flex:1;min-height:0;margin-bottom:0" [nzBodyStyle]="{'padding':'12px 16px 16px','display':'flex','flexDirection':'column','height':'100%'}">
+      <ng-template #visitorsTitle>
+        <span style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600">
+          <i nz-icon nzType="calendar"></i>
+          Visitors
+          <span style="font-weight:400;font-size:11px;color:var(--text-muted)">
+            {{ dateRange[0] | date:'dd/MM/yy' }} - {{ dateRange[1] | date:'dd/MM/yy' }}
+          </span>
+        </span>
+        <nz-tag nzColor="blue" style="font-size:11px">{{ filteredVisitors.length }}</nz-tag>
+      </ng-template>
+      <div style="flex:1;overflow:auto;min-height:0" class="dashboard-table-wrap">
+        <nz-table #db *ngIf="filteredVisitors.length > 0" [nzData]="filteredVisitors" [nzPageSize]="5"
+          [nzShowPagination]="filteredVisitors.length > 5" nzSize="small" style="font-size:12px">
+          <thead>
+            <tr><th>Photo</th><th nzColumnKey="Name" [nzSortFn]="true">Name</th><th>Company</th><th>Contact</th><th>Date</th><th>Time</th><th style="width:100px">Status</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let v of db.data">
+              <td>
+                <div class="photo-cell">
+                  <img *ngIf="v.Photo" [src]="v.Photo" class="photo-avatar" alt="">
+                  <span *ngIf="!v.Photo" class="photo-placeholder">{{ v.Name?.charAt(0)?.toUpperCase() || '?' }}</span>
+                </div>
+              </td>
+              <td><span class="visitor-name">{{ v.Name }}</span></td>
+              <td><span class="visitor-company">{{ v.Company || '-' }}</span></td>
+              <td><span class="contact-name">{{ v.WName || '-' }}</span></td>
+              <td><span class="date-tag"><i nz-icon nzType="calendar" nzTheme="outline" style="font-size:10px"></i>{{ v.Date ? (v.Date | date:'dd/MM') : '-' }}</span></td>
+              <td><span class="time-tag">{{ v.Time || '-' }}</span></td>
+              <td><span class="status-badge" [ngClass]="getStatusColor(v.Status || 'Pending')"><span class="dot"></span>{{ v.Status || 'Pending' }}</span></td>
+            </tr>
+          </tbody>
+        </nz-table>
+        <div *ngIf="filteredVisitors.length === 0" class="empty-state" style="padding:32px 0">
+          <i nz-icon nzType="inbox"></i><p>No visitors in selected date range</p>
+        </div>
+      </div>
+    </nz-card>
+  </ng-container>
+</div>

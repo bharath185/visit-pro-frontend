@@ -1,0 +1,57 @@
+<div class="fade-in">
+  <div class="page-header">
+    <nz-breadcrumb>
+      <nz-breadcrumb-item><a routerLink="/"><i nz-icon nzType="home"></i></a></nz-breadcrumb-item>
+      <nz-breadcrumb-item>Self Check-Out</nz-breadcrumb-item>
+    </nz-breadcrumb>
+    <h2>Self Check-Out</h2>
+  </div>
+
+  <div class="self-service-container">
+    <nz-card nzTitle="Self Check-Out">
+      <!-- Enter OTP -->
+      <div *ngIf="!visitor && !checkedOut">
+        <div class="form-section">
+          <label class="form-section-label">Enter Your Check-In Code / OTP</label>
+          <input nz-input [(ngModel)]="otp" placeholder="Enter your code" maxlength="10" autofocus
+            style="text-align:center;font-size:18px;letter-spacing:4px;font-weight:600;display:block">
+        </div>
+        <div class="d-flex gap-2">
+          <button nz-button nzType="primary" (click)="verify()" [disabled]="loading">
+            <i nz-icon nzType="check"></i> Verify
+          </button>
+        </div>
+      </div>
+
+      <!-- Visitor Details -->
+      <div *ngIf="visitor && !checkedOut">
+        <div style="text-align:center;margin-bottom:20px">
+          <nz-avatar nzSize="large" nzText="{{ visitor.Name?.charAt(0)?.toUpperCase() }}"
+            nzStyle="background-color: #072f5f; color: #fff; width:64px; height:64px; line-height:64px; font-size:24px; margin:0 auto 12px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%;">
+          </nz-avatar>
+          <h4 style="margin:0;color:var(--primary)">{{ visitor.Name }}</h4>
+          <p class="text-muted mb-1">{{ visitor.Company }}</p>
+          <p class="text-muted mb-1">Visit: {{ visitor.Date | date:'mediumDate' }}</p>
+          <p class="text-muted">Meeting: {{ visitor.WName || 'N/A' }}</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button nz-button nzType="primary" (click)="confirmCheckOut()" [disabled]="loading">
+            <i nz-icon nzType="rollback"></i> Confirm Check-Out
+          </button>
+        </div>
+      </div>
+
+      <!-- Success -->
+      <div *ngIf="checkedOut" class="wizard-center">
+        <i nz-icon nzType="check-circle" nzTheme="outline" style="font-size:48px;color:var(--success);margin-bottom:16px;display:block"></i>
+        <h4 style="margin:12px 0;color:var(--primary)">Check-Out Complete!</h4>
+        <p class="text-muted">Thank you for visiting.</p>
+        <div class="mt-2">
+          <button nz-button nzType="default" (click)="reset()">
+            <i nz-icon nzType="undo"></i> Check Out Another
+          </button>
+        </div>
+      </div>
+    </nz-card>
+  </div>
+</div>

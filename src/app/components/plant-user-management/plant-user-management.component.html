@@ -1,0 +1,105 @@
+<div class="fade-in">
+  <nz-card>
+    <div class="master-toolbar">
+      <span style="font-weight:600;font-size:15px"><i nz-icon nzType="user"></i> Plant Users</span>
+      <div>
+        <input nz-input [(ngModel)]="empSearch" placeholder="Search..." nzPrefixIcon="search" style="width:200px">
+        <button nz-button nzType="primary" (click)="openNew()" style="margin-left:8px"><i nz-icon nzType="plus"></i> New User</button>
+      </div>
+    </div>
+    <p class="text-muted" style="font-size:12px;margin-bottom:8px">Users created here will be scoped to your plant automatically</p>
+    <nz-table #pu [nzData]="filteredList" [nzPageSize]="10" [nzLoading]="loading" nzSize="small">
+      <thead>
+        <tr><th>#</th><th nzColumnKey="Name" [nzSortFn]="true">Name</th><th>Username</th><th>Designation</th><th>Email</th><th>Mobile</th><th>Role</th><th>Reporting To</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of pu.data; let i = index">
+          <td class="text-muted">{{ i+1 }}</td>
+          <td><strong>{{ e.Name }}</strong></td>
+          <td>{{ e.Code || '-' }}</td>
+          <td>{{ e.Description || '-' }}</td>
+          <td>{{ e.Field1 || '-' }}</td>
+          <td>{{ e.Field2 || '-' }}</td>
+          <td>
+            <nz-tag *ngIf="e.IsAdminUser" nzColor="volcano">Admin</nz-tag>
+            <nz-tag *ngIf="e.IsSecurity" nzColor="green">Security</nz-tag>
+            <span *ngIf="!e.IsAdminUser && !e.IsSecurity" style="color:#999">User</span>
+          </td>
+          <td>{{ e.ReportName || '-' }}</td>
+          <td>
+            <button *ngIf="!isCurrentUser(e.Id || e.id)" nz-button nzSize="small" (click)="editEmp(e)"><i nz-icon nzType="edit"></i></button>
+            <button *ngIf="!isCurrentUser(e.Id || e.id)" nz-button nzSize="small" nzDanger style="margin-left:6px" (click)="deleteEmp(e.Id || e.id)"><i nz-icon nzType="delete"></i></button>
+            <span *ngIf="isCurrentUser(e.Id || e.id)" style="color:#999;font-size:12px">Current User</span>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </nz-card>
+
+  <nz-modal [(nzVisible)]="showModal" [nzTitle]="editingId ? 'Edit User' : 'New User'" (nzOnOk)="save()" (nzOnCancel)="showModal=false" [nzOkLoading]="saving" [nzWidth]="600">
+    <ng-template [nzModalContent]>
+      <div nz-row [nzGutter]="[16,0]">
+        <div nz-col [nzSpan]="12">
+          <div class="form-section"><label>Company</label>
+            <input nz-input [ngModel]="userCompany?.Name || ''" disabled>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section"><label>Plant</label>
+            <input nz-input [ngModel]="plantName" disabled>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section"><label>Full Name <span class="required">*</span></label><input nz-input [(ngModel)]="editModal.Name" placeholder="Full name"></div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section"><label>Username <span class="required">*</span></label><input nz-input [(ngModel)]="editModal.Code" placeholder="Username"></div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section"><label>Location</label>
+            <nz-select [(ngModel)]="editModal.ShortName" nzPlaceHolder="Select Location" [nzDisabled]="true">
+              <nz-option *ngFor="let l of locations" [nzLabel]="l.Name" [nzValue]="l.Name"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section"><label>Designation</label>
+            <nz-select [(ngModel)]="editModal.Description" nzPlaceHolder="Select Designation">
+              <nz-option *ngFor="let d of designations" [nzLabel]="d.Name" [nzValue]="d.Name"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section"><label>Email</label><input nz-input [(ngModel)]="editModal.Field1" type="email" placeholder="email@example.com"></div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section"><label>Mobile</label><input nz-input [(ngModel)]="editModal.Field2" placeholder="10-digit mobile number" pattern="[6-9]\d{9}" maxlength="10" title="Enter a valid 10-digit mobile number"></div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section"><label>Password <span class="required" *ngIf="!editingId">*</span></label>
+            <input nz-input [(ngModel)]="password" type="password" [placeholder]="editingId ? 'Leave blank to keep' : 'Password'">
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section"><label>Roles</label>
+            <div style="margin-bottom:4px;color:#666;font-size:12px">Regular User (unchecked) / Security (checked)</div>
+            <label style="display:block;cursor:pointer">
+              <input type="checkbox" [(ngModel)]="editModal.IsSecurity" style="margin-right:6px">Security
+            </label>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label>Reporting To</label>
+            <label style="display:block;margin-bottom:6px;cursor:pointer">
+              <input type="checkbox" [(ngModel)]="reportingToEnabled" (ngModelChange)="onReportingToChange()" style="margin-right:6px">Enable Reporting Person
+            </label>
+            <nz-select *ngIf="reportingToEnabled" [(ngModel)]="editModal.ReportId" nzPlaceHolder="Select Reporting Person" nzAllowClear style="width:100%">
+              <nz-option *ngFor="let o of reportingEmployees" [nzLabel]="o.name" [nzValue]="o.id"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </nz-modal>
+</div>

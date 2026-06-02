@@ -1,0 +1,489 @@
+<div class="fade-in">
+  <div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+      <nz-breadcrumb>
+        <nz-breadcrumb-item><a routerLink="/"><i nz-icon nzType="home"></i></a></nz-breadcrumb-item>
+        <nz-breadcrumb-item>Master Setup</nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <h2>Master Setup</h2>
+    </div>
+  </div>
+
+  <nz-tabset>
+    <!-- ===== 1. Companies Tab ===== -->
+    <nz-tab *ngIf="isSuperAdmin" nzTitle="Companies">
+      <nz-card>
+        <div class="d-flex align-items-center justify-content-between" style="margin-bottom:16px">
+          <span style="font-weight:600;font-size:15px"><i nz-icon nzType="build"></i> Companies</span>
+          <div class="d-flex align-items-center gap-2">
+            <input nz-input [(ngModel)]="compSearch" placeholder="Search..." nzPrefixIcon="search" style="width:200px">
+            <button nz-button nzType="primary" (click)="openNewComp()"><i nz-icon nzType="plus"></i> New Company</button>
+          </div>
+        </div>
+        <nz-table #ms1 [nzData]="filteredComps" [nzPageSize]="10" [nzShowPagination]="true" [nzShowSizeChanger]="true" [nzPageSizeOptions]="[5,10,25]" nzSize="small">
+          <thead>
+            <tr><th>#</th><th nzColumnKey="Name" [nzSortFn]="true">Name</th><th>Code</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of ms1.data; let i = index">
+              <td class="text-muted">{{ i + 1 }}</td>
+              <td><strong>{{ c.Name }}</strong></td>
+              <td>{{ c.Code || '-' }}</td>
+              <td>
+                <button nz-button nzType="default" nzSize="small" (click)="editComp(c)"><i nz-icon nzType="edit"></i></button>
+                <button nz-button nzType="primary" nzDanger nzSize="small" style="margin-left:6px" (click)="deleteComp(c.Id!)"><i nz-icon nzType="delete"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-card>
+    </nz-tab>
+
+    <!-- ===== 2. Locations Tab ===== -->
+    <nz-tab *ngIf="isSuperAdmin" nzTitle="Locations">
+      <nz-card>
+        <div class="d-flex align-items-center justify-content-between" style="margin-bottom:16px">
+          <span style="font-weight:600;font-size:15px"><i nz-icon nzType="environment"></i> Locations</span>
+          <div class="d-flex align-items-center gap-2">
+            <input nz-input [(ngModel)]="locSearch" placeholder="Search..." nzPrefixIcon="search" style="width:200px">
+            <button nz-button nzType="primary" (click)="openNewLoc()"><i nz-icon nzType="plus"></i> New Location</button>
+          </div>
+        </div>
+        <nz-table #ms2 [nzData]="filteredLocs" [nzPageSize]="10" [nzShowPagination]="true" [nzShowSizeChanger]="true" [nzPageSizeOptions]="[5,10,25]" nzSize="small">
+          <thead>
+            <tr><th>#</th><th nzColumnKey="Name" [nzSortFn]="true">Name</th><th>Short Name</th><th>Company</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of ms2.data; let i = index">
+              <td class="text-muted">{{ i + 1 }}</td>
+              <td><strong>{{ d.Name }}</strong></td>
+              <td>{{ d.ShortName || '-' }}</td>
+              <td><nz-tag nzColor="blue">{{ getCompanyName(d.ParentId) }}</nz-tag></td>
+              <td>
+                <button nz-button nzType="default" nzSize="small" (click)="editLoc(d)"><i nz-icon nzType="edit"></i></button>
+                <button nz-button nzType="primary" nzDanger nzSize="small" style="margin-left:6px" (click)="deleteLoc(d.Id!)"><i nz-icon nzType="delete"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-card>
+    </nz-tab>
+
+    <!-- ===== 3. Plants Tab ===== -->
+    <nz-tab *ngIf="isSuperAdmin" nzTitle="Plants">
+      <nz-card>
+        <div class="d-flex align-items-center justify-content-between" style="margin-bottom:16px">
+          <span style="font-weight:600;font-size:15px"><i nz-icon nzType="bank"></i> Plants</span>
+          <div class="d-flex align-items-center gap-2">
+            <input nz-input [(ngModel)]="plantSearch" placeholder="Search..." nzPrefixIcon="search" style="width:200px">
+            <button nz-button nzType="primary" (click)="openNewPlant()"><i nz-icon nzType="plus"></i> New Plant</button>
+          </div>
+        </div>
+        <nz-table #ms3 [nzData]="filteredPlants" [nzPageSize]="10" [nzShowPagination]="true" [nzShowSizeChanger]="true" [nzPageSizeOptions]="[5,10,25]" nzSize="small">
+          <thead>
+            <tr><th>#</th><th nzColumnKey="Name" [nzSortFn]="true">Name</th><th>Code</th><th>Company</th><th>Location</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of ms3.data; let i = index">
+              <td class="text-muted">{{ i + 1 }}</td>
+              <td><strong>{{ p.Name }}</strong></td>
+              <td>{{ p.Code || '-' }}</td>
+              <td><nz-tag nzColor="blue">{{ getCompanyName(p.ParentId) }}</nz-tag></td>
+              <td>{{ getLocationName(p.LocationId) }}</td>
+              <td>
+                <button nz-button nzType="default" nzSize="small" (click)="editPlant(p)"><i nz-icon nzType="edit"></i></button>
+                <button nz-button nzType="primary" nzDanger nzSize="small" style="margin-left:6px" (click)="deletePlant(p.Id!)"><i nz-icon nzType="delete"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-card>
+    </nz-tab>
+
+    <!-- ===== 4. Designations Tab ===== -->
+    <nz-tab *ngIf="isSuperAdmin" nzTitle="Designations">
+      <nz-card>
+        <div class="d-flex align-items-center justify-content-between" style="margin-bottom:16px">
+          <span style="font-weight:600;font-size:15px"><i nz-icon nzType="idcard"></i> Designations</span>
+          <div class="d-flex align-items-center gap-2">
+            <input nz-input [(ngModel)]="desigSearch" placeholder="Search..." nzPrefixIcon="search" style="width:200px">
+            <button nz-button nzType="primary" (click)="openNewDesig()"><i nz-icon nzType="plus"></i> New Designation</button>
+          </div>
+        </div>
+        <nz-table #ms4 [nzData]="filteredDesigs" [nzPageSize]="10" [nzShowPagination]="true" [nzShowSizeChanger]="true" [nzPageSizeOptions]="[5,10,25]" nzSize="small">
+          <thead>
+            <tr><th>#</th><th nzColumnKey="Name" [nzSortFn]="true">Name</th><th>Company</th><th>Plant</th><th>Short Name</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of ms4.data; let i = index">
+              <td class="text-muted">{{ i + 1 }}</td>
+              <td><strong>{{ d.Name }}</strong></td>
+              <td><nz-tag nzColor="blue">{{ getCompanyName(d.ParentId) }}</nz-tag></td>
+              <td>{{ getPlantNameForDesig(d) }}</td>
+              <td>{{ d.ShortName || '-' }}</td>
+              <td>
+                <button nz-button nzType="default" nzSize="small" (click)="editDesig(d)"><i nz-icon nzType="edit"></i></button>
+                <button nz-button nzType="primary" nzDanger nzSize="small" style="margin-left:6px" (click)="deleteDesig(d.Id!)"><i nz-icon nzType="delete"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-card>
+    </nz-tab>
+
+    <!-- ===== 5. Categories Tab ===== -->
+    <nz-tab *ngIf="isSuperAdmin" nzTitle="Categories">
+      <nz-card>
+        <div class="d-flex align-items-center justify-content-between" style="margin-bottom:16px">
+          <span style="font-weight:600;font-size:15px"><i nz-icon nzType="tag"></i> Categories</span>
+          <div class="d-flex align-items-center gap-2">
+            <input nz-input [(ngModel)]="catSearch" placeholder="Search..." nzPrefixIcon="search" style="width:200px">
+            <button nz-button nzType="primary" (click)="openNewCat()"><i nz-icon nzType="plus"></i> New Category</button>
+          </div>
+        </div>
+        <nz-table #ms5 [nzData]="filteredCats" [nzPageSize]="10" nzSize="small">
+          <thead><tr><th>#</th><th>Name</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let c of ms5.data; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td><strong>{{ c.Name }}</strong></td>
+              <td>
+                <button nz-button nzType="default" nzSize="small" (click)="editCat(c)"><i nz-icon nzType="edit"></i></button>
+                <button nz-button nzType="primary" nzDanger nzSize="small" style="margin-left:6px" (click)="deleteCat(c.Id!)"><i nz-icon nzType="delete"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-card>
+    </nz-tab>
+
+    <!-- ===== 6. Visit Purposes Tab ===== -->
+    <nz-tab *ngIf="isSuperAdmin" nzTitle="Visit Purposes">
+      <nz-card>
+        <div class="d-flex align-items-center justify-content-between" style="margin-bottom:16px">
+          <span style="font-weight:600;font-size:15px"><i nz-icon nzType="tags"></i> Visit Purposes</span>
+          <div class="d-flex align-items-center gap-2">
+            <input nz-input [(ngModel)]="vpSearch" placeholder="Search..." nzPrefixIcon="search" style="width:200px">
+            <button nz-button nzType="primary" (click)="openNewVp()"><i nz-icon nzType="plus"></i> New Purpose</button>
+          </div>
+        </div>
+        <nz-table #ms6 [nzData]="filteredVps" [nzPageSize]="10" nzSize="small">
+          <thead><tr><th>#</th><th>Name</th><th>Description</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let v of ms6.data; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td><strong>{{ v.Name }}</strong></td>
+              <td>{{ v.Description || '-' }}</td>
+              <td>
+                <button nz-button nzType="default" nzSize="small" (click)="editVp(v)"><i nz-icon nzType="edit"></i></button>
+                <button nz-button nzType="primary" nzDanger nzSize="small" style="margin-left:6px" (click)="deleteVp(v.Id!)"><i nz-icon nzType="delete"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-card>
+    </nz-tab>
+
+    <!-- ===== 7. Users Tab ===== -->
+    <nz-tab nzTitle="Users">
+      <nz-card>
+        <div class="d-flex align-items-center justify-content-between" style="margin-bottom:16px">
+          <span style="font-weight:600;font-size:15px"><i nz-icon nzType="user"></i> Users / Employees</span>
+          <div class="d-flex align-items-center gap-2">
+            <input nz-input [(ngModel)]="empSearch" placeholder="Search..." nzPrefixIcon="search" style="width:200px">
+            <button nz-button nzType="primary" (click)="openNewEmp()"><i nz-icon nzType="plus"></i> New User</button>
+          </div>
+        </div>
+        <nz-table #ms7 [nzData]="filteredEmps" [nzPageSize]="10" [nzShowPagination]="true" [nzShowSizeChanger]="true" [nzPageSizeOptions]="[5,10,25]" nzSize="small">
+          <thead>
+            <tr><th>#</th><th nzColumnKey="Name" [nzSortFn]="true">Name</th><th>Username</th><th>Company</th><th>Plant</th><th>Designation</th><th>Email</th><th>Role</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of ms7.data; let i = index">
+              <td class="text-muted">{{ i + 1 }}</td>
+              <td><strong>{{ e.Name }}</strong></td>
+              <td>{{ e.Code || '-' }}</td>
+              <td><nz-tag nzColor="geekblue">{{ getCompanyName(e.ParentId) }}</nz-tag></td>
+              <td>{{ e.PlantId ? (getPlantNameForDesig(e) || '-') : '-' }}</td>
+              <td>{{ e.Description || '-' }}</td>
+              <td>{{ e.Field1 || '-' }}</td>
+              <td>
+                <nz-tag *ngIf="e.IsAdminUser" nzColor="volcano">Admin</nz-tag>
+                <nz-tag *ngIf="e.IsSecurity" nzColor="green">Security</nz-tag>
+                <span *ngIf="!e.IsAdminUser && !e.IsSecurity" style="color:#999">User</span>
+              </td>
+              <td>
+                <button *ngIf="!isCurrentUser(e.Id!)" nz-button nzType="default" nzSize="small" (click)="editEmp(e)"><i nz-icon nzType="edit"></i></button>
+                <button *ngIf="!isCurrentUser(e.Id!)" nz-button nzType="primary" nzDanger nzSize="small" style="margin-left:6px" (click)="deleteEmp(e.Id!)"><i nz-icon nzType="delete"></i></button>
+                <span *ngIf="isCurrentUser(e.Id!)" style="color:#999;font-size:12px">Current User</span>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-card>
+    </nz-tab>
+
+  </nz-tabset>
+
+  <!-- ===== Company Modal ===== -->
+  <nz-modal [(nzVisible)]="compDialog" [nzTitle]="editingComp ? 'Edit Company' : 'New Company'"
+    (nzOnOk)="saveCompany()" (nzOnCancel)="compDialog=false" [nzOkText]="editingComp ? 'Update' : 'Save'"
+    [nzMaskClosable]="false" [nzOkLoading]="savingComp">
+    <ng-template [nzModalContent]>
+      <div class="form-section">
+        <label class="form-section-label">Company Name <span style="color:#ff4d4f">*</span></label>
+        <input nz-input [(ngModel)]="compModel.Name" placeholder="e.g. 3DCAD" required>
+      </div>
+      <div class="form-section">
+        <label class="form-section-label">Company Code</label>
+        <input nz-input [(ngModel)]="compModel.Code" placeholder="e.g. 3DCAD">
+      </div>
+    </ng-template>
+  </nz-modal>
+
+  <!-- ===== Location Modal ===== -->
+  <nz-modal [(nzVisible)]="locDialog" [nzTitle]="editingLoc ? 'Edit Location' : 'New Location'"
+    (nzOnOk)="saveLocation()" (nzOnCancel)="locDialog=false" [nzOkText]="editingLoc ? 'Update' : 'Save'"
+    [nzMaskClosable]="false" [nzOkLoading]="savingLoc">
+    <ng-template [nzModalContent]>
+      <div nz-row [nzGutter]="[16,0]">
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Location Name <span style="color:#ff4d4f">*</span></label>
+            <input nz-input [(ngModel)]="locModel.Name" placeholder="e.g. Vijayanagar" required>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Short Name</label>
+            <input nz-input [(ngModel)]="locModel.ShortName" placeholder="e.g. VJNGR">
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Company <span style="color:#ff4d4f">*</span></label>
+            <nz-select [(ngModel)]="locModel.ParentId" nzPlaceHolder="Select Company" nzAllowClear>
+              <nz-option *ngFor="let o of companies" [nzLabel]="o.Name || ''" [nzValue]="o.Id"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </nz-modal>
+
+  <!-- ===== Plant Modal ===== -->
+  <nz-modal [(nzVisible)]="plantDialog" [nzTitle]="editingPlant ? 'Edit Plant' : 'New Plant'"
+    (nzOnOk)="savePlant()" (nzOnCancel)="plantDialog=false" [nzOkText]="editingPlant ? 'Update' : 'Save'"
+    [nzMaskClosable]="false" [nzOkLoading]="savingPlant" [nzWidth]="500">
+    <ng-template [nzModalContent]>
+      <div nz-row [nzGutter]="[16,0]">
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Plant Name <span style="color:#ff4d4f">*</span></label>
+            <input nz-input [(ngModel)]="plantModel.Name" placeholder="e.g. Unit-1" required>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Plant Code</label>
+            <input nz-input [(ngModel)]="plantModel.Code" placeholder="e.g. U1">
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Company <span style="color:#ff4d4f">*</span></label>
+            <nz-select [(ngModel)]="plantModel.ParentId" nzPlaceHolder="Select Company" nzAllowClear (ngModelChange)="onPlantCompanyChange()">
+              <nz-option *ngFor="let o of companies" [nzLabel]="o.Name || ''" [nzValue]="o.Id"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Location <span style="color:#ff4d4f">*</span></label>
+            <nz-select [(ngModel)]="plantModel.LocationId" nzPlaceHolder="Select Location" nzAllowClear>
+              <nz-option *ngFor="let o of plantLocationOptions" [nzLabel]="o.label" [nzValue]="o.value"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="24">
+          <div class="form-section">
+            <label class="form-section-label">Address</label>
+            <input nz-input [(ngModel)]="plantModel.Description" placeholder="Plant address">
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </nz-modal>
+
+  <!-- ===== Designation Modal ===== -->
+  <nz-modal [(nzVisible)]="desigDialog" [nzTitle]="editingDesig ? 'Edit Designation' : 'New Designation'"
+    (nzOnOk)="saveDesignation()" (nzOnCancel)="desigDialog=false" [nzOkText]="editingDesig ? 'Update' : 'Save'" [nzWidth]="500"
+    [nzMaskClosable]="false" [nzOkLoading]="savingDesig">
+    <ng-template [nzModalContent]>
+      <div nz-row [nzGutter]="[16,0]">
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Name <span style="color:#ff4d4f">*</span></label>
+            <input nz-input [(ngModel)]="desigModel.Name" placeholder="e.g. Engineer" required>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Short Name</label>
+            <input nz-input [(ngModel)]="desigModel.ShortName" placeholder="e.g. ENG">
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Company <span style="color:#ff4d4f">*</span></label>
+            <nz-select [(ngModel)]="desigModel.ParentId" nzPlaceHolder="Select Company" nzAllowClear (ngModelChange)="onDesigCompanyChange()">
+              <nz-option *ngFor="let o of desigCompanyOptions" [nzLabel]="o.label" [nzValue]="o.value"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Location</label>
+            <nz-select [(ngModel)]="desigModel.LocationId" nzPlaceHolder="Select Location" nzAllowClear (ngModelChange)="onDesigLocationChange()">
+              <nz-option *ngFor="let o of desigLocationOptions" [nzLabel]="o.label" [nzValue]="o.value"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Plant <span style="color:#ff4d4f">*</span></label>
+            <nz-select [(ngModel)]="desigModel.PlantId" nzPlaceHolder="Select Plant" nzAllowClear>
+              <nz-option *ngFor="let o of desigPlantOptions" [nzLabel]="o.label" [nzValue]="o.value"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Description</label>
+            <input nz-input [(ngModel)]="desigModel.Description" placeholder="Brief description">
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </nz-modal>
+
+  <!-- ===== Employee Modal ===== -->
+  <nz-modal [(nzVisible)]="empDialog" [nzTitle]="editingEmp ? 'Edit User' : 'New User'"
+    (nzOnOk)="saveEmployee()" (nzOnCancel)="empDialog=false" [nzOkText]="editingEmp ? 'Update' : 'Save'" [nzWidth]="600"
+    [nzMaskClosable]="false" [nzOkLoading]="savingEmp">
+    <ng-template [nzModalContent]>
+      <div nz-row [nzGutter]="[16,0]">
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Full Name <span style="color:#ff4d4f">*</span></label>
+            <input nz-input [(ngModel)]="empModel.Name" placeholder="Full name" required>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Username <span style="color:#ff4d4f">*</span></label>
+            <input nz-input [(ngModel)]="empModel.Code" placeholder="e.g. johndoe" required>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Company <span style="color:#ff4d4f">*</span></label>
+            <nz-select [(ngModel)]="empModel.ParentId" nzPlaceHolder="Select Company" nzAllowClear (ngModelChange)="onEmpCompanyChange()">
+              <nz-option *ngFor="let o of empCompanyOptions" [nzLabel]="o.label" [nzValue]="o.value"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Location</label>
+            <nz-select [(ngModel)]="empModel.ShortName" nzPlaceHolder="Select Location" nzAllowClear (ngModelChange)="onEmpLocationChange()">
+              <nz-option *ngFor="let o of empLocationOptions" [nzLabel]="o.label" [nzValue]="o.label"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Plant <span style="color:#ff4d4f">*</span></label>
+            <nz-select [(ngModel)]="empModel.PlantId" nzPlaceHolder="Select Plant" nzAllowClear (ngModelChange)="onEmpPlantChange()">
+              <nz-option *ngFor="let o of empPlantOptions" [nzLabel]="o.label" [nzValue]="o.value"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Designation <span style="color:#ff4d4f">*</span></label>
+            <nz-select [(ngModel)]="empModel.Description" nzPlaceHolder="Select Designation" nzAllowClear>
+              <nz-option *ngFor="let o of empDesigOptions" [nzLabel]="o.label" [nzValue]="o.label"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Email</label>
+            <input nz-input [(ngModel)]="empModel.Field1" type="email" placeholder="email@company.com">
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Mobile</label>
+            <input nz-input [(ngModel)]="empModel.Field2" placeholder="Mobile number">
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Password <span style="color:#ff4d4f">*</span></label>
+            <input nz-input [(ngModel)]="empPassword" type="password" [placeholder]="editingEmp ? 'Leave blank to keep' : 'Enter password'">
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div class="form-section">
+            <label class="form-section-label">Access Level</label>
+            <nz-select [(ngModel)]="selectedRole" nzPlaceHolder="Select role">
+               <nz-option [nzLabel]="'User'" [nzValue]="'user'"></nz-option>
+              <nz-option [nzLabel]="'Security'" [nzValue]="'security'"></nz-option>
+              <nz-option [nzLabel]="'Plant Admin'" [nzValue]="'plantadmin'"></nz-option>
+              <nz-option [nzLabel]="'Administrator'" [nzValue]="'admin'"></nz-option>
+            </nz-select>
+            <span class="text-muted" style="font-size:12px;">Admins manage their plant; Users only invite visitors</span>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12" *ngIf="auth.isPlantAdmin()">
+          <div class="form-section">
+            <label class="form-section-label">Reporting To</label>
+            <label style="display:block;margin-bottom:6px;cursor:pointer">
+              <input type="checkbox" [(ngModel)]="reportingToEnabled" (ngModelChange)="onReportingToChange()" style="margin-right:6px">Enable Reporting Person
+            </label>
+            <nz-select *ngIf="reportingToEnabled" [(ngModel)]="empModel.ReportId" nzPlaceHolder="Select Reporting Person" nzAllowClear style="width:100%">
+              <nz-option *ngFor="let o of reportingEmployees" [nzLabel]="o.name" [nzValue]="o.id"></nz-option>
+            </nz-select>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </nz-modal>
+
+  <!-- Category Dialog -->
+  <nz-modal [(nzVisible)]="catDialog" [nzTitle]="editingCat ? 'Edit Category' : 'New Category'" (nzOnOk)="saveCategory()" (nzOnCancel)="catDialog=false" [nzOkLoading]="savingCat">
+    <ng-template [nzModalContent]>
+      <div class="form-section">
+        <label class="form-section-label">Category Name <span style="color:#ff4d4f">*</span></label>
+        <input nz-input [(ngModel)]="catModel.Name" placeholder="Enter category name">
+      </div>
+    </ng-template>
+  </nz-modal>
+
+  <!-- Visit Purpose Dialog -->
+  <nz-modal [(nzVisible)]="vpDialog" [nzTitle]="editingVp ? 'Edit Visit Purpose' : 'New Visit Purpose'" (nzOnOk)="saveVisitPurpose()" (nzOnCancel)="vpDialog=false" [nzOkLoading]="savingVp">
+    <ng-template [nzModalContent]>
+      <div class="form-section">
+        <label class="form-section-label">Purpose Name <span style="color:#ff4d4f">*</span></label>
+        <input nz-input [(ngModel)]="vpModel.Name" placeholder="Enter visit purpose">
+      </div>
+      <div class="form-section">
+        <label class="form-section-label">Description</label>
+        <input nz-input [(ngModel)]="vpModel.Description" placeholder="Optional description">
+      </div>
+    </ng-template>
+  </nz-modal>
+
+</div>

@@ -1,0 +1,66 @@
+<div class="fade-in dash-container">
+  <div class="dash-welcome">
+    <div class="dash-welcome-left">
+      <nz-avatar [nzText]="user?.FullName?.charAt(0)?.toUpperCase()" nzSize="default" class="dash-welcome-avatar"></nz-avatar>
+      <div>
+        <div class="dash-welcome-title">Welcome, {{ user?.FullName }}</div>
+        <div class="dash-welcome-sub">Super Admin &middot; {{ user?.DesignationName || '' }}</div>
+      </div>
+    </div>
+    <div class="dash-welcome-right">
+      <div class="dash-stat-mini"><span class="dash-stat-mini-val">{{ headerMetrics.TodayVisitors || 0 }}</span><span class="dash-stat-mini-lbl">Today</span></div>
+      <div class="dash-stat-mini"><span class="dash-stat-mini-val">{{ headerMetrics.TotalCheckedIn || 0 }}</span><span class="dash-stat-mini-lbl">Checked In</span></div>
+    </div>
+  </div>
+
+  <div nz-row [nzGutter]="[16,16]">
+    <div nz-col [nzXs]="12" [nzSm]="6" *ngFor="let m of [
+      {icon:'send',val:headerMetrics.TotalVisitors||0,lbl:'Total Visitors',bg:'#1890ff',bg2:'#096dd9'},
+      {icon:'check-circle',val:headerMetrics.TotalAccepted||0,lbl:'Accepted',bg:'#52c41a',bg2:'#389e0d'},
+      {icon:'safety',val:headerMetrics.TotalCheckedIn||0,lbl:'Checked In',bg:'#fa8c16',bg2:'#d46b08'},
+      {icon:'rollback',val:headerMetrics.TotalCheckedOut||0,lbl:'Checked Out',bg:'#13c2c2',bg2:'#08979c'}
+    ]">
+      <div class="metric-card" [style.background]="'linear-gradient(135deg,'+m.bg+','+m.bg2+')'">
+        <i nz-icon [nzType]="m.icon" class="metric-icon"></i>
+        <div class="metric-value">{{ m.val }}</div>
+        <div class="metric-label">{{ m.lbl }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div nz-row [nzGutter]="[16,16]">
+    <div nz-col [nzXs]="24" [nzLg]="8">
+      <nz-card nzTitle="Status Distribution" [nzBodyStyle]="{'padding':'16px'}" class="dash-card">
+        <div echarts [options]="doughnutOption" style="height:200px"></div>
+      </nz-card>
+    </div>
+    <div nz-col [nzXs]="24" [nzLg]="8">
+      <nz-card nzTitle="Status Count" [nzBodyStyle]="{'padding':'16px'}" class="dash-card">
+        <div echarts [options]="barOption" style="height:200px"></div>
+      </nz-card>
+    </div>
+    <div nz-col [nzXs]="24" [nzLg]="8">
+      <nz-card [nzTitle]="trendTitle" [nzBodyStyle]="{'padding':'16px'}" class="dash-card">
+        <ng-template #trendTitle>
+          <span style="display:flex;align-items:center;gap:8px">
+            <i nz-icon nzType="bar-chart"></i> Trend
+            <nz-range-picker [(ngModel)]="dateRange" (ngModelChange)="onDateRangeChange()" nzSize="small" nzFormat="yyyy-MM-dd" style="width:220px"></nz-range-picker>
+          </span>
+        </ng-template>
+        <div echarts [options]="trendOption" style="height:200px"></div>
+      </nz-card>
+    </div>
+  </div>
+
+  <nz-card [nzTitle]="'All Visitors ('+recentVisitors.length+')'" [nzBodyStyle]="{'padding':'12px 16px'}">
+    <nz-table #sd *ngIf="recentVisitors.length > 0" [nzData]="recentVisitors" [nzPageSize]="8" nzSize="small">
+      <thead><tr><th>Name</th><th>Company</th><th>Contact</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+      <tbody><tr *ngFor="let v of sd.data">
+        <td><strong>{{ v.Name }}</strong></td><td>{{ v.Company || '-' }}</td><td>{{ v.WName || '-' }}</td>
+        <td>{{ v.Date ? (v.Date|date:'dd/MM') : '-' }}</td><td>{{ v.Time || '-' }}</td>
+        <td><nz-tag [nzColor]="getStatusColor(v.Status)">{{ v.Status || 'Pending' }}</nz-tag></td>
+      </tr></tbody>
+    </nz-table>
+    <div *ngIf="recentVisitors.length === 0" class="empty-state"><i nz-icon nzType="inbox"></i><p>No visitors found</p></div>
+  </nz-card>
+</div>

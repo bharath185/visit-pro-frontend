@@ -1,0 +1,34 @@
+<div class="fade-in">
+  <nz-card>
+    <div class="master-toolbar">
+      <span style="font-weight:600;font-size:15px"><i nz-icon nzType="tag"></i> Designations / Roles</span>
+      <div>
+        <input nz-input [(ngModel)]="desigSearch" placeholder="Search..." nzPrefixIcon="search" style="width:200px">
+        <button nz-button nzType="primary" (click)="openNew()" style="margin-left:8px"><i nz-icon nzType="plus"></i> New</button>
+      </div>
+    </div>
+    <p class="text-muted" style="font-size:12px;margin-bottom:8px">Manage designations for your plant</p>
+    <nz-table #dm [nzData]="filteredList" [nzPageSize]="10" [nzLoading]="loading" nzSize="small">
+      <thead>
+        <tr><th>#</th><th nzColumnKey="Name" [nzSortFn]="true">Name</th><th>Plant</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of dm.data; let i = index">
+          <td class="text-muted">{{ i+1 }}</td>
+          <td><strong>{{ d.Name }}</strong></td>
+          <td><nz-tag nzColor="blue">{{ d.ParentName || '-' }}</nz-tag></td>
+          <td>
+            <button nz-button nzSize="small" (click)="editDesig(d)"><i nz-icon nzType="edit"></i></button>
+            <button nz-button nzSize="small" nzDanger style="margin-left:6px" (click)="deleteDesig(d.Id || d.id)"><i nz-icon nzType="delete"></i></button>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </nz-card>
+
+  <nz-modal [(nzVisible)]="showModal" [nzTitle]="editingId ? 'Edit Designation' : 'New Designation'" (nzOnOk)="save()" (nzOnCancel)="showModal=false" [nzOkLoading]="saving">
+    <ng-template [nzModalContent]>
+      <div class="form-section"><label>Designation Name <span class="required">*</span></label><input nz-input [(ngModel)]="editModal.Name" placeholder="e.g. Manager"></div>
+    </ng-template>
+  </nz-modal>
+</div>
